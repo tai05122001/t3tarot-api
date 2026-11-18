@@ -1,27 +1,35 @@
 package vn.t3tarot.api.common.idempotency;
 
+import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import vn.t3tarot.api.common.error.ApiException;
-import vn.t3tarot.api.common.error.ErrorCode;
+import vn.t3tarot.api.common.error.CommonErrorCode;
 
 public record IdempotencyKey(UUID value) {
 
-    public static final String HEADER = "Idempotency-Key";
+    public static final String HEADER_NAME = "Idempotency-Key";
+
+    private static final Pattern CANONICAL_UUID =
+            Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     public IdempotencyKey {
-        if (value == null) {
-            throw new ApiException(ErrorCode.INVALID_IDEMPOTENCY_KEY);
-        }
+        Objects.requireNonNull(value, "value");
     }
 
-    public static IdempotencyKey parse(String raw) {
-        if (raw == null || raw.isBlank()) {
-            throw new ApiException(ErrorCode.INVALID_IDEMPOTENCY_KEY);
+    public static IdempotencyKey parse(String rawValue) {
+        if (rawValue == null || rawValue.isBlank()) {
+            throw new ApiException(CommonErrorCode.IDEMPOTENCY_KEY_MISSING);
         }
-        try {
-            return new IdempotencyKey(UUID.fromString(raw.trim()));
-        } catch (IllegalArgumentException exception) {
-            throw new ApiException(ErrorCode.INVALID_IDEMPOTENCY_KEY, exception);
+        String trimmedValue = rawValue.strip();
+        if (!CANONICAL_UUID.matcher(trimmedValue).matches()) {
+            throw new ApiException(CommonErrorCode.IDEMPOTENCY_KEY_INVALID);
         }
+        return new IdempotencyKey(UUID.fromString(trimmedValue));
+    }
+
+    @Override
+    public String toString() {
+        return value.toString();
     }
 }

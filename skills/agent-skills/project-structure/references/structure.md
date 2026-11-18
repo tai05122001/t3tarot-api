@@ -17,11 +17,11 @@ t3tarot-api/
     ├── main/java/vn/t3tarot/api/
     │   ├── T3TarotApiApplication.java
     │   ├── common/               module OPEN, không nghiệp vụ
-    │   │   ├── error/            ErrorCode, ApiException, GlobalExceptionHandler
+    │   │   ├── error/            ErrorCode (interface), CommonErrorCode, ApiException, FieldViolation, GlobalExceptionHandler
     │   │   ├── idempotency/      IdempotencyKey
     │   │   ├── random/           bean SecureRandom
     │   │   ├── time/             VietnamClock, bean Clock
-    │   │   └── web/              RequestIdFilter
+    │   │   └── web/              RequestIdFilter, PageQuery, PageResponse
     │   └── <module>/             identity, content, reading, interpretation, followup, safety, privacy, audit
     │       ├── <Module>Api.java  interface công khai, record trả ra ngoài, event
     │       ├── web/
@@ -77,5 +77,4 @@ Toàn bộ chuẩn đặt tên (class, method, biến, test, bảng, migration, 
 
 ## Còn mở
 
-- Mã lỗi riêng từng module cần đổi `ErrorCode` trong `common` thành interface; chưa làm.
 - Các mục ghi "(đề xuất)" trong `naming.md`.

@@ -124,7 +124,10 @@ Migration: `V{n}__{động_từ}_{đối_tượng}.sql`, chữ thường, gạch
 - Tiền tố phiên bản `/api/v1`: đề xuất, chưa chốt (xem `client-compatibility`).
 - Field JSON và query param: camelCase (`readingId`, `isReversed`).
 - Header: `Idempotency-Key`, `X-Request-Id`; header client đề xuất `X-Client-Platform`, `X-App-Version`.
-- Mã lỗi: `UPPER_SNAKE_CASE`. Mã chung không tiền tố (`VALIDATION_FAILED`); mã nghiệp vụ có tiền tố module (đề xuất): `FOLLOWUP_LIMIT_REACHED`, `READING_NOT_FOUND`.
+- Mã lỗi trả cho client (đã chốt 18/11/2026): chữ thường, ngăn bằng dấu chấm, luôn bắt đầu bằng `error.`; client tự map theo mã, server không trả thông báo tiếng Việt.
+  - Mã chung trong `CommonErrorCode`: `error.<lý do>`, ví dụ `error.invalid.request`, `error.not.found`.
+  - Mã nghiệp vụ trong `<Module>ErrorCode` (đề xuất): `error.<module>.<lý do>`, ví dụ `error.followup.limit.reached`, `error.reading.not.found`.
+  - Hằng enum trong Java vẫn `UPPER_SNAKE_CASE`: `LIMIT_REACHED("error.followup.limit.reached", ...)`.
 
 ## Cấu hình và biến môi trường
 

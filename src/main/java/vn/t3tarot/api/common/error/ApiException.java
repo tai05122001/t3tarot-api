@@ -1,19 +1,24 @@
 package vn.t3tarot.api.common.error;
 
-import lombok.Getter;
-
-@Getter
 public class ApiException extends RuntimeException {
 
-    private final ErrorCode errorCode;
+    private final transient ErrorCode errorCode;
 
     public ApiException(ErrorCode errorCode) {
-        super(errorCode.getTitle());
+        this(errorCode, errorCode.code());
+    }
+
+    public ApiException(ErrorCode errorCode, String debugMessage) {
+        super(debugMessage);
         this.errorCode = errorCode;
     }
 
-    public ApiException(ErrorCode errorCode, Throwable cause) {
-        super(errorCode.getTitle(), cause);
+    public ApiException(ErrorCode errorCode, String debugMessage, Throwable cause) {
+        super(debugMessage, cause);
         this.errorCode = errorCode;
+    }
+
+    public ErrorCode getErrorCode() {
+        return errorCode;
     }
 }
