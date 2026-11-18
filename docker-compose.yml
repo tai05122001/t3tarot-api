@@ -1,7 +1,19 @@
 services:
   postgres:
-    image: postgres:17
+    build:
+      context: ./docker/postgres
+      args:
+        POSTGRES_VERSION: ${DB_IMAGE_VERSION:-17}
+    image: t3tarot-postgres:${DB_IMAGE_VERSION:-17}
     container_name: t3tarot-postgres
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+      - -c
+      - timezone=${DB_TIMEZONE:-UTC}
+      - -c
+      - log_min_duration_statement=${DB_SLOW_QUERY_MS:-500}
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USERNAME}

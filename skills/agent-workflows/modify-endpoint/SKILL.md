@@ -5,7 +5,7 @@ description: Workflow sửa endpoint đã có của T3Tarot - xác định endpo
 
 # Workflow: sửa endpoint
 
-Chi tiết từng bước và bảng mức ảnh hưởng: `skills/agent-workflows/modify-endpoint/references/workflow.md` (mục "Sửa endpoint"). Điều phối `client-compatibility`, `hot-path-sql`, `flyway-migration`, `run-tests`, `java-code-review`.
+Chi tiết từng bước và bảng mức ảnh hưởng: `skills/agent-workflows/modify-endpoint/references/workflow.md` (mục "Sửa endpoint"). Điều phối `client-compatibility`, `hot-path-sql`, `flyway-migration`, `run-tests`, `java-code-review`, `changelog`.
 
 ## Các bước
 
@@ -24,7 +24,8 @@ Chi tiết từng bước và bảng mức ảnh hưởng: `skills/agent-workflo
    - Trung: toàn bộ test của endpoint và module, test mới cho nhánh mới, `MockMvc` cho controller. Mobile dùng: thêm test request như app cũ gửi (không có field mới) vẫn chạy như trước.
    - Cao: `mvn clean verify` toàn bộ, test đồng thời, IDOR, idempotency retry, dữ liệu cũ, test các nơi gọi, test request như app cũ gửi.
    Dùng `run-tests` (tối đa 3 vòng, không làm xanh giả).
-6. **Tổng kết:** diff, test đã chạy và kết quả, coverage, mục ảnh hưởng đã xử lý và chưa xử lý, changelog (thay đổi gì, vì sao, API hoặc cờ bị ảnh hưởng, QA cần test gì trên website và app, ghi chú rollout), bảng ảnh hưởng theo client kèm phiên bản app tối thiểu, Lưu ý, 2–4 câu hỏi tiếp.
+6. **Changelog:** dùng `changelog`: tìm changelog của feature đang sửa trong `docs/changelog/` và sửa đè cho đúng trạng thái sau thay đổi (không nối thêm lịch sử); cập nhật cả changelog khác nhắc tới phần vừa đổi.
+7. **Tổng kết:** diff, test đã chạy và kết quả, coverage, mục ảnh hưởng đã xử lý và chưa xử lý, đường dẫn changelog đã sửa, bảng ảnh hưởng theo client kèm phiên bản app tối thiểu, Lưu ý, 2–4 câu hỏi tiếp.
 
 ## Điểm dừng chờ người dùng
 

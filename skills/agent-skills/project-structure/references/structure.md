@@ -8,7 +8,9 @@ Chỗ ghi **(đề xuất)** là quy ước mình đặt để dùng được ng
 t3tarot-api/
 ├── CLAUDE.md                     quy tắc chung cho agent
 ├── pom.xml, lombok.config, docker-compose.yml, .env.example
-├── docs/                         chỉ tài liệu gốc của dự án (spec, ERD)
+├── docker/<service>/             Dockerfile + cấu hình image dev (hiện có postgres/)
+├── docs/                         tài liệu gốc của dự án (spec, ERD)
+│   └── changelog/                changelog theo feature (README.md là mục lục), sửa đè khi feature đổi
 ├── skills/
 │   ├── README.md                 danh sách skill, cách sao chép sang .claude/skills
 │   ├── agent-skills/<tên>/       SKILL.md + references/
@@ -17,9 +19,10 @@ t3tarot-api/
     ├── main/java/vn/t3tarot/api/
     │   ├── T3TarotApiApplication.java
     │   ├── common/               module OPEN, không nghiệp vụ
-    │   │   ├── error/            ErrorCode (interface), CommonErrorCode, ApiException, FieldViolation, GlobalExceptionHandler
+    │   │   ├── error/            ErrorCode (interface), CommonErrorCode, ErrorCodeFormat, ViolationCodes, ApiException, FieldViolation, GlobalExceptionHandler
     │   │   ├── idempotency/      IdempotencyKey
     │   │   ├── random/           bean SecureRandom
+    │   │   ├── security/         SecurityConfig, JwtDecoderConfig, SecurityProperties, AuthenticatedUser, ProblemDetailSecurityHandler
     │   │   ├── time/             VietnamClock, bean Clock
     │   │   └── web/              RequestIdFilter, PageQuery, PageResponse
     │   └── <module>/             identity, content, reading, interpretation, followup, safety, privacy, audit
@@ -46,7 +49,9 @@ t3tarot-api/
 | Migration | `src/main/resources/db/migration/V{n}__{mo_ta}.sql`, `n` là số kế tiếp |
 | Cấu hình ứng dụng | `src/main/resources/application.yml` (thêm khoá, không tạo file mới) |
 | Biến môi trường mới | thêm vào `.env.example` với giá trị giả |
+| Dockerfile, cấu hình image dev | `docker/<service>/` |
 | Tài liệu gốc (spec, ERD) | `docs/` |
+| Changelog của feature | `docs/changelog/<feature>.md`, mục lục `docs/changelog/README.md` |
 | Quy tắc, SQL mẫu, quy trình | `skills/<loại>/<tên>/references/` của skill sở hữu |
 | Skill mới | `skills/agent-skills/<tên>/` hoặc `skills/agent-workflows/<tên>/`; tên không chứa tên dự án |
 

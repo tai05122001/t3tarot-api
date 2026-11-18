@@ -34,5 +34,5 @@ Khác biệt cốt lõi: website deploy cùng lúc với backend, còn app đã 
 ## Dễ quên
 
 - Thời gian trả về theo ISO-8601 có offset. Ngày của daily card do server quyết theo `Asia/Ho_Chi_Minh`, không lấy giờ trên máy người dùng.
-- Client hiển thị lỗi theo `code` trong `ProblemDetail`, không dựa vào câu chữ.
+- Client hiển thị lỗi theo `code` (`error.<nhóm>.<lý do>`) trong `ProblemDetail` và tự map ra câu chữ; server không trả thông báo. Đổi tên hoặc xoá một mã lỗi là phá tương thích với app đã phát hành.
 - Thêm giá trị enum mới vào field đang có có thể làm app cũ lỗi nếu app không xử lý giá trị lạ.

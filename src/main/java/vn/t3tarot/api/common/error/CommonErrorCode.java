@@ -5,21 +5,22 @@ import org.springframework.http.HttpStatusCode;
 
 public enum CommonErrorCode implements ErrorCode {
 
-    INVALID_REQUEST("error.invalid.request", HttpStatus.BAD_REQUEST),
-    IDEMPOTENCY_KEY_MISSING("error.idempotency.key.missing", HttpStatus.BAD_REQUEST),
-    IDEMPOTENCY_KEY_INVALID("error.idempotency.key.invalid", HttpStatus.BAD_REQUEST),
-    IDEMPOTENCY_KEY_REUSED("error.idempotency.key.reused", HttpStatus.UNPROCESSABLE_CONTENT),
-    IDEMPOTENCY_KEY_IN_PROGRESS("error.idempotency.key.in.progress", HttpStatus.CONFLICT),
-    UNAUTHENTICATED("error.unauthenticated", HttpStatus.UNAUTHORIZED),
-    FORBIDDEN("error.forbidden", HttpStatus.FORBIDDEN),
-    NOT_FOUND("error.not.found", HttpStatus.NOT_FOUND),
-    METHOD_NOT_ALLOWED("error.method.not.allowed", HttpStatus.METHOD_NOT_ALLOWED),
-    UNSUPPORTED_MEDIA_TYPE("error.unsupported.media.type", HttpStatus.UNSUPPORTED_MEDIA_TYPE),
-    CONFLICT("error.conflict", HttpStatus.CONFLICT),
-    RATE_LIMITED("error.rate.limited", HttpStatus.TOO_MANY_REQUESTS),
-    INTERNAL("error.internal", HttpStatus.INTERNAL_SERVER_ERROR),
-    SERVICE_UNAVAILABLE("error.service.unavailable", HttpStatus.SERVICE_UNAVAILABLE),
-    UPSTREAM_TIMEOUT("error.upstream.timeout", HttpStatus.GATEWAY_TIMEOUT);
+    INVALID_REQUEST("error.invalid_request.malformed", HttpStatus.BAD_REQUEST),
+    INVALID_PARAM("error.invalid_param.is_invalid", HttpStatus.BAD_REQUEST),
+    IDEMPOTENCY_KEY_MISSING("error.idempotency_key.is_missing", HttpStatus.BAD_REQUEST),
+    IDEMPOTENCY_KEY_INVALID("error.idempotency_key.is_invalid", HttpStatus.BAD_REQUEST),
+    IDEMPOTENCY_KEY_REUSED("error.idempotency_key.is_reused", HttpStatus.UNPROCESSABLE_CONTENT),
+    IDEMPOTENCY_KEY_IN_PROGRESS("error.idempotency_key.in_progress", HttpStatus.CONFLICT),
+    UNAUTHENTICATED("error.auth.unauthenticated", HttpStatus.UNAUTHORIZED),
+    FORBIDDEN("error.auth.forbidden", HttpStatus.FORBIDDEN),
+    NOT_FOUND("error.resource.not_found", HttpStatus.NOT_FOUND),
+    METHOD_NOT_ALLOWED("error.http.method_not_allowed", HttpStatus.METHOD_NOT_ALLOWED),
+    UNSUPPORTED_MEDIA_TYPE("error.http.unsupported_media_type", HttpStatus.UNSUPPORTED_MEDIA_TYPE),
+    CONFLICT("error.resource.conflict", HttpStatus.CONFLICT),
+    RATE_LIMITED("error.rate_limit.exceeded", HttpStatus.TOO_MANY_REQUESTS),
+    INTERNAL("error.server.internal", HttpStatus.INTERNAL_SERVER_ERROR),
+    SERVICE_UNAVAILABLE("error.server.unavailable", HttpStatus.SERVICE_UNAVAILABLE),
+    UPSTREAM_TIMEOUT("error.server.upstream_timeout", HttpStatus.GATEWAY_TIMEOUT);
 
     private final String code;
     private final HttpStatus httpStatus;
