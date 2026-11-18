@@ -1,0 +1,51 @@
+# Build
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.flattened-pom.xml
+HELP.md
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+.sts4-cache/
+out/
+bin/
+
+# Claude Code (skills are sourced from skills/ and copied locally)
+.claude/skills/
+.claude/settings.local.json
+
+# Code quality
+.scannerwork/
+.sonarlint/
+
+# Logs and runtime
+logs/
+*.log
+hs_err_pid*.log
+replay_pid*.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Office lock files
+~$*.docx
+~$*.xlsx
