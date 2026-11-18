@@ -9,7 +9,9 @@
 - Giờ và ngày: chỉ qua `VietnamClock` (`today()`, `now()`). Không gọi `LocalDate.now()`, `Instant.now()` hay `Clock.systemDefaultZone()`.
 - Ngẫu nhiên: chỉ dùng bean `SecureRandom`. Không `Math.random()`, `new Random()` (Sonar `java:S2245`).
 - Tiền: `long` VND hoặc `BigDecimal` kèm `RoundingMode` rõ ràng; không `float`, `double`. Chi phí LLM lưu micro-USD kiểu `long`.
-- Lỗi cho client: ném `ApiException(ErrorCode)`, `GlobalExceptionHandler` trả `ProblemDetail` (RFC 7807) với field `code`. Không đưa dữ liệu người dùng vào thông báo lỗi.
+- Response thành công trả thẳng body, không bọc envelope. Lỗi trả `ProblemDetail` (RFC 9457) qua `GlobalExceptionHandler`, thêm field `code` (mã `error.*`), `requestId`, và `errors` (`[{field, reason}]`) khi request sai định dạng. Không trả `detail`, không trả giá trị người dùng gửi lên.
+- Lỗi nghiệp vụ: ném `ApiException(<Module>ErrorCode.X)`; enum `<Module>ErrorCode` đặt trong `domain` của module và cài đặt interface `ErrorCode` của `common`. Lỗi kỹ thuật dùng `CommonErrorCode`. Thêm mã mới thì thêm vào enum của module, không sửa `common`.
+- Phân trang: offset, query `page` (bắt đầu từ 0) và `size` qua `PageQuery`; trả `PageResponse<T>` (`items`, `page`, `size`, `totalItems`, `totalPages`, `hasNext`). Sort do server quyết định, không nhận sort từ client.
 - Header `Idempotency-Key` là UUID; parse bằng `IdempotencyKey.parse(...)`.
 - Mỗi request nhận `X-Request-Id` do server sinh (không tin giá trị client gửi), đưa vào MDC `requestId` và log.
 
