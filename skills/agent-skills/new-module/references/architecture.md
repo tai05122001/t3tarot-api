@@ -27,7 +27,7 @@ Quy ước cấu trúc (đã chốt 18/11/2026, kiểu "Facade + Use case"): Mod
 
 | Module | Trách nhiệm | Bảng |
 | --- | --- | --- |
-| `identity` | User, đăng nhập, cài đặt (`reversal_mode`, `question_retention_days`) | `app_user`, `user_identity`, `otp_challenge`, `auth_session` |
+| `identity` | User, đăng nhập, cài đặt (`reversal_mode`, `question_retention_days`) | `app_user`, `user_identity`, `otp_challenge` (hoãn cùng OTP), `auth_session` |
 | `content` | Card KB, deck, ảnh, content version | `card`, `deck`, `card_image`, `content_version`, `card_meaning` |
 | `reading` | Reading, draw engine, quota, state machine | `reading`, `reading_shuffle`, `reading_card`, `reading_content`, `spread_quota` |
 | `interpretation` | Prompt builder, gọi LLM, validate, lease worker | `llm_call` |
@@ -86,5 +86,10 @@ Chiếm lease (đề xuất): xem `skills/agent-skills/hot-path-sql/references/h
 | Daily card: gọi LLM khi mở, hay sinh sẵn nhiều biến thể theo `(lá, chiều)` rồi chọn | Ảnh hưởng chi phí token, độ trễ và F1 |
 | N lượt trải mỗi tuần; tuần lịch hay 7 ngày cuốn chiếu | `spread_quota` chỉ đúng với tuần lịch |
 | Liên kết tài khoản cùng email giữa các cách đăng nhập | Cách gộp daily và quota |
-| Đăng nhập (C1 tự build / C2 Keycloak / C3 managed), LLM provider | Chặn F1, F8, F5 |
+| Đăng nhập đã chốt trước mắt (18/11/2026): username + mật khẩu (email bắt buộc, xác minh email), Google, Facebook; client lấy ID token, server xác minh rồi cấp JWT riêng. Còn mở: C1 tự build hay C2 Keycloak / C3 managed; LLM provider | Chặn F1, F5; F8 cần viết lại theo cách đăng nhập mới |
+| Schema chưa có chỗ cho mật khẩu: `user_identity.provider` chưa có giá trị `PASSWORD`, chưa có cột băm mật khẩu và username | Cần migration; hỏi trước khi viết (`flyway-migration`) |
+| Thuật toán băm mật khẩu (giả định Argon2id, chưa xác minh), chính sách mật khẩu, khoá tạm khi đoán sai | Giả định cần xác minh trước khi code `identity` |
+| Chống tạo hàng loạt tài khoản để lấy thêm daily card và hạn mức; chống brute force và credential stuffing ở endpoint đăng nhập (chưa có rate limit) | Ảnh hưởng quota và an ninh; cần phương án trước khi mở đăng ký |
+| Quên mật khẩu và xác minh email cần kênh gửi email (nhà cung cấp chưa chọn) | Chặn luồng đăng ký bằng username |
+| Apple Sign-In: nếu app iOS có social login của bên thứ ba, App Store có thể yêu cầu thêm đăng nhập tương đương (chưa kiểm hướng dẫn hiện hành) | Quyết định trước khi phát hành app iOS |
 | Java 21 hay 25 | Virtual thread bị pin khi gặp `synchronized` trên Java 21; từ JDK 24 trở đi đã khắc phục |

@@ -11,10 +11,15 @@ import org.springframework.http.HttpStatusCode;
 class CommonErrorCodeTest {
 
     @Test
-    void everyCodeFollowsDottedLowercaseFormat() {
+    void everyCodeFollowsErrorGroupReasonFormat() {
         assertThat(CommonErrorCode.values())
                 .extracting(CommonErrorCode::code)
-                .allMatch(code -> code.matches("^error(\\.[a-z]+)+$"));
+                .allMatch(ErrorCodeFormat::isValid);
+    }
+
+    @Test
+    void invalidParamCodeMatchesDocumentedValue() {
+        assertThat(CommonErrorCode.INVALID_PARAM.code()).isEqualTo("error.invalid_param.is_invalid");
     }
 
     @Test

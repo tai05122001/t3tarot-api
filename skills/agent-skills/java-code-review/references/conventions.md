@@ -9,9 +9,14 @@
 - Giờ và ngày: chỉ qua `VietnamClock` (`today()`, `now()`). Không gọi `LocalDate.now()`, `Instant.now()` hay `Clock.systemDefaultZone()`.
 - Ngẫu nhiên: chỉ dùng bean `SecureRandom`. Không `Math.random()`, `new Random()` (Sonar `java:S2245`).
 - Tiền: `long` VND hoặc `BigDecimal` kèm `RoundingMode` rõ ràng; không `float`, `double`. Chi phí LLM lưu micro-USD kiểu `long`.
-- Response thành công trả thẳng body, không bọc envelope. Lỗi trả `ProblemDetail` (RFC 9457) qua `GlobalExceptionHandler`, thêm field `code` (mã `error.*`), `requestId`, và `errors` (`[{field, reason}]`) khi request sai định dạng. Không trả `detail`, không trả giá trị người dùng gửi lên.
+- Response thành công trả thẳng body, không bọc envelope. Lỗi trả `ProblemDetail` (RFC 9457) qua `GlobalExceptionHandler`, thêm field `code` (dạng `error.<nhóm>.<lý do>`, ví dụ `error.invalid_param.is_missing`), `requestId`, và `errors` (`[{field, code}]`) khi tham số sai. Chỉ trả mã lỗi: không `message`, `messageCode`, `title`, `detail`, không message của exception, không giá trị người dùng gửi lên; FE tự parse mã. Mỗi `<Module>ErrorCode` có test kiểm mọi mã qua `ErrorCodeFormat.isValid` và không trùng nhau.
 - Lỗi nghiệp vụ: ném `ApiException(<Module>ErrorCode.X)`; enum `<Module>ErrorCode` đặt trong `domain` của module và cài đặt interface `ErrorCode` của `common`. Lỗi kỹ thuật dùng `CommonErrorCode`. Thêm mã mới thì thêm vào enum của module, không sửa `common`.
 - Phân trang: offset, query `page` (bắt đầu từ 0) và `size` qua `PageQuery`; trả `PageResponse<T>` (`items`, `page`, `size`, `totalItems`, `totalPages`, `hasNext`). Sort do server quyết định, không nhận sort từ client.
+- Bảo mật HTTP (`common/security`): mọi đường dẫn mặc định `authenticated()`; endpoint công khai chỉ thêm qua `t3tarot.security.public-paths` và nêu lý do trong PR. `csrf.disable()` bị Sonar S4502 flag: đánh dấu hotspot là Safe trong SonarQube, lý do là token đi bằng header `Authorization`, không dùng cookie hay session.
+- Danh tính người gọi chỉ lấy từ `@AuthenticationPrincipal AuthenticatedUser` (claim `sub`). Không nhận `userId` từ body, query hay path; mọi truy vấn theo `reading_id` vẫn kèm `user_id`.
+- Access token: JWT RS256, kiểm chữ ký, `iss`, `aud`, `exp`, `sub`; không nhận token ở query hoặc form. Khoá công khai nạp từ `JWT_PUBLIC_KEY`, không có giá trị mặc định (Sonar S2068); khoá riêng không nằm trong repo.
+- CORS: liệt kê origin cụ thể trong `t3tarot.security.cors.allowed-origins`, không dùng `*` (Sonar S5122); mobile không cần CORS.
+- Actuator chạy ở `MANAGEMENT_PORT`, chỉ cho nội bộ cluster; không mở cổng này ra ingress. Trên cổng API, `/actuator/**` bị chặn.
 - Header `Idempotency-Key` là UUID; parse bằng `IdempotencyKey.parse(...)`.
 - Mỗi request nhận `X-Request-Id` do server sinh (không tin giá trị client gửi), đưa vào MDC `requestId` và log.
 

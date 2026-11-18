@@ -34,7 +34,7 @@ Viết `followup` liền, không `followUp`, không `follow_up`. Thêm khái ni�
 
 - Chữ thường, một từ, số ít, không gạch dưới: `reading`, `followup`, `usecase`, `infra`.
 - Module: `identity`, `content`, `reading`, `interpretation`, `followup`, `safety`, `privacy`, `audit`, `common`.
-- Package con trong module chỉ dùng: `web`, `usecase`, `domain`, `infra`. Trong `common` chia theo nhóm kỹ thuật: `error`, `idempotency`, `random`, `time`, `web`.
+- Package con trong module chỉ dùng: `web`, `usecase`, `domain`, `infra`. Trong `common` chia theo nhóm kỹ thuật: `error`, `idempotency`, `random`, `security`, `time`, `web`.
 
 ### Class theo vai trò
 
@@ -124,15 +124,16 @@ Migration: `V{n}__{động_từ}_{đối_tượng}.sql`, chữ thường, gạch
 - Tiền tố phiên bản `/api/v1`: đề xuất, chưa chốt (xem `client-compatibility`).
 - Field JSON và query param: camelCase (`readingId`, `isReversed`).
 - Header: `Idempotency-Key`, `X-Request-Id`; header client đề xuất `X-Client-Platform`, `X-App-Version`.
-- Mã lỗi trả cho client (đã chốt 18/11/2026): chữ thường, ngăn bằng dấu chấm, luôn bắt đầu bằng `error.`; client tự map theo mã, server không trả thông báo tiếng Việt.
-  - Mã chung trong `CommonErrorCode`: `error.<lý do>`, ví dụ `error.invalid.request`, `error.not.found`.
-  - Mã nghiệp vụ trong `<Module>ErrorCode` (đề xuất): `error.<module>.<lý do>`, ví dụ `error.followup.limit.reached`, `error.reading.not.found`.
-  - Hằng enum trong Java vẫn `UPPER_SNAKE_CASE`: `LIMIT_REACHED("error.followup.limit.reached", ...)`.
+- Mã lỗi trả cho client (đã chốt 18/11/2026): chỉ trả mã, không trả thông báo hay `messageCode`; FE tự parse mã ra câu chữ. Định dạng `error.<nhóm>.<lý do>`: chữ thường, đúng 3 đoạn ngăn bằng dấu chấm, trong mỗi đoạn dùng snake_case (`[a-z]+(_[a-z]+)*`, không số, không gạch ngang). Kiểm bằng `ErrorCodeFormat.isValid`.
+  - Mã chung trong `CommonErrorCode`: nhóm là loại lỗi, ví dụ `error.invalid_param.is_missing`, `error.auth.forbidden`, `error.resource.not_found`, `error.server.internal`.
+  - Mã nghiệp vụ trong `<Module>ErrorCode` (đề xuất): nhóm là tên khái niệm theo từ điển, ví dụ `error.followup.limit_reached`, `error.reading.not_found`, `error.daily_card.already_drawn`.
+  - Lỗi theo tham số: `errors` là `[{field, code}]`, `code` dạng `error.invalid_param.<lý do>` với lý do `is_missing`, `is_invalid`, `invalid_format`, `invalid_type`, `out_of_range`, `length_out_of_range` (ánh xạ trong `ViolationCodes`).
+  - Hằng enum trong Java vẫn `UPPER_SNAKE_CASE`: `LIMIT_REACHED("error.followup.limit_reached", ...)`.
 
 ## Cấu hình và biến môi trường
 
 - Khoá trong `application.yml` của dự án: `t3tarot.<module>.<khoá-kebab-case>` (đề xuất), ví dụ `t3tarot.followup.max-per-reading`.
-- Biến môi trường: `UPPER_SNAKE_CASE`, tiền tố theo nhóm: `DB_`, `LLM_`, `SWAGGER_`. Mỗi biến mới phải có trong `.env.example` với giá trị giả.
+- Biến môi trường: `UPPER_SNAKE_CASE`, tiền tố theo nhóm: `DB_`, `LLM_`, `SWAGGER_`, `JWT_`, `CORS_`, `MANAGEMENT_`. Mỗi biến mới phải có trong `.env.example` với giá trị giả.
 
 ## Observability
 
@@ -143,6 +144,7 @@ Migration: `V{n}__{động_từ}_{đối_tượng}.sql`, chữ thường, gạch
 ## Tài liệu và skill
 
 - `docs/`: giữ nguyên tên tài liệu gốc.
+- `docs/changelog/<feature>.md`: tên feature kebab-case tiếng Anh, dùng đúng chữ trong từ điển thuật ngữ (`api-error-and-pagination`, `security-access-control`); mỗi feature một file, không đặt tên theo ngày hay số phiên bản. Mục lục là `docs/changelog/README.md`.
 - Skill: thư mục kebab-case tiếng Anh, không chứa tên dự án (`hot-path-sql`). File trong `references/` kebab-case `.md`.
 
 ## Tracking

@@ -5,7 +5,7 @@ description: Workflow tạo endpoint mới cho T3Tarot từ mô tả, qua contro
 
 # Workflow: tạo endpoint
 
-Chi tiết: `skills/agent-workflows/modify-endpoint/references/workflow.md` và `skills/README.md`. Workflow này điều phối các skill `project-structure`, `new-module`, `client-compatibility`, `hot-path-sql`, `flyway-migration`, `run-tests`, `java-code-review`.
+Chi tiết: `skills/agent-workflows/modify-endpoint/references/workflow.md` và `skills/README.md`. Workflow này điều phối các skill `project-structure`, `new-module`, `client-compatibility`, `hot-path-sql`, `flyway-migration`, `run-tests`, `java-code-review`, `changelog`.
 
 ## Các bước
 
@@ -18,7 +18,8 @@ Chi tiết: `skills/agent-workflows/modify-endpoint/references/workflow.md` và 
 7. **Test:** `MockMvc` cho controller, unit test cho use case, Testcontainers cho SQL, test đồng thời nếu là đường nóng, test IDOR và validate, test timeout LLM nếu có gọi LLM. Mobile dùng: test gửi lại cùng `Idempotency-Key`; xử lý khác theo nền tảng: test với header từng nền tảng.
 8. **Chạy test:** dùng `run-tests` (tối đa 3 vòng, không làm xanh giả, coverage ≥ 80%).
 9. **Tự review** bằng `java-code-review` cho phần đã viết.
-10. **Tổng kết:** Session Feature Summary (tính năng, file, thay đổi chính, cần test gì), bảng ảnh hưởng theo client (website, iOS, Android: việc phía client, phiên bản app tối thiểu), Lưu ý, 2–4 câu hỏi tiếp.
+10. **Changelog:** dùng `changelog`: ghi hoặc sửa đè `docs/changelog/<feature>.md` cho đúng trạng thái hiện hành, cập nhật mục lục.
+11. **Tổng kết:** Session Feature Summary (tính năng, file, thay đổi chính, cần test gì), bảng ảnh hưởng theo client (website, iOS, Android: việc phía client, phiên bản app tối thiểu), Lưu ý, 2–4 câu hỏi tiếp.
 
 ## Điểm dừng chờ người dùng
 

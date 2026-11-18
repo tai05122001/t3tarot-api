@@ -11,7 +11,7 @@ class ApiExceptionTest {
         ApiException ex = new ApiException(CommonErrorCode.CONFLICT);
 
         assertThat(ex.getErrorCode()).isEqualTo(CommonErrorCode.CONFLICT);
-        assertThat(ex.getMessage()).isEqualTo("error.conflict");
+        assertThat(ex.getMessage()).isEqualTo(CommonErrorCode.CONFLICT.code());
     }
 
     @Test

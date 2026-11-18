@@ -39,11 +39,13 @@ Repo đang ở giai đoạn khung: đã có cấu hình, code dùng chung (`comm
    cp .env.example .env        # Windows: copy .env.example .env
    ```
 
-2. Chạy PostgreSQL:
+2. Build image và chạy PostgreSQL (image tự dựng từ `docker/postgres/Dockerfile`):
 
    ```bash
-   docker compose up -d
+   docker compose up -d --build
    ```
+
+   Đang có volume `t3tarot-pgdata` từ trước thì `--encoding` và `--data-checksums` không đổi (chỉ áp dụng khi khởi tạo volume mới); cấu hình trong `postgresql.conf` vẫn áp dụng. Muốn khởi tạo lại: `docker compose down -v` (xoá toàn bộ dữ liệu local).
 
 3. Chạy ứng dụng:
 
@@ -51,7 +53,16 @@ Repo đang ở giai đoạn khung: đã có cấu hình, code dùng chung (`comm
    mvn spring-boot:run
    ```
 
-Ứng dụng chạy ở cổng `8080` (đổi bằng `SERVER_PORT`). Health check: `GET /actuator/health`.
+Ứng dụng chạy ở cổng `8080` (đổi bằng `SERVER_PORT`). Health check: `GET /actuator/health` trên cổng `8081` (đổi bằng `MANAGEMENT_PORT`), không phải cổng 8080.
+
+Ứng dụng không khởi động nếu thiếu `JWT_ISSUER`, `JWT_AUDIENCE` hoặc `JWT_PUBLIC_KEY`. Tạo cặp khoá cho môi trường dev (giữ khoá riêng ngoài repo):
+
+```bash
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out dev-private.pem
+openssl rsa -in dev-private.pem -pubout -outform DER | openssl base64 -A
+```
+
+Dán dòng Base64 in ra vào `JWT_PUBLIC_KEY` trong `.env`.
 
 ### Biến môi trường
 
@@ -63,14 +74,30 @@ Repo đang ở giai đoạn khung: đã có cấu hình, code dùng chung (`comm
 | `DB_USERNAME` | | Tài khoản database |
 | `DB_PASSWORD` | | Mật khẩu database |
 | `DB_POOL_SIZE` | `10` | Số connection tối đa của Hikari |
+| `DB_IMAGE_VERSION` | `17` | Chỉ cho `docker compose`: phiên bản PostgreSQL của image dev (build arg và tag `t3tarot-postgres:<phiên bản>`); ứng dụng không đọc biến này |
+| `DB_TIMEZONE` | `UTC` | Chỉ cho `docker compose`: `timezone` của server PostgreSQL dev |
+| `DB_SLOW_QUERY_MS` | `500` | Chỉ cho `docker compose`: ngưỡng ghi log câu lệnh chậm (ms); `0` ghi mọi câu lệnh, `-1` tắt |
 | `SERVER_PORT` | `8080` | Cổng HTTP |
-| `SWAGGER_ENABLED` | `false` | Bật Swagger UI và OpenAPI; chỉ bật ở local và dev |
+| `SWAGGER_ENABLED` | `false` | Bật Swagger UI và OpenAPI (và mở công khai các đường dẫn Swagger); chỉ bật ở local và dev |
+| `MANAGEMENT_PORT` | `8081` | Cổng Actuator (health, prometheus); chỉ cho truy cập nội bộ cluster, không public ra ingress |
+| `JWT_ISSUER` | | Giá trị claim `iss` mà access token phải có |
+| `JWT_AUDIENCE` | | Giá trị claim `aud` mà access token phải có |
+| `JWT_PUBLIC_KEY` | | Khoá công khai RSA (X.509, RS256, tối thiểu 2048 bit) để kiểm chữ ký access token; PEM hoặc Base64 một dòng |
+| `CORS_ALLOWED_ORIGINS` | rỗng | Danh sách origin của web, cách nhau dấu phẩy, ví dụ `https://t3tarot.vn`; rỗng là chặn mọi origin; không nhận `*` |
 
 Không commit file `.env`; chỉ `.env.example` được đưa lên git.
 
 ### Swagger
 
-Đặt `SWAGGER_ENABLED=true` rồi mở `http://localhost:8080/swagger-ui/index.html`. Hiện Spring Security vẫn chặn mọi endpoint vì chưa có cấu hình bảo mật (phương án đăng nhập chưa chốt), nên Swagger UI sẽ trả 401 cho tới khi thêm `SecurityFilterChain`.
+Đặt `SWAGGER_ENABLED=true` rồi mở `http://localhost:8080/swagger-ui/index.html`. Trang Swagger mở công khai khi bật cờ này; các endpoint API vẫn cần header `Authorization: Bearer <access token>`.
+
+### Bảo mật
+
+- Mọi đường dẫn mặc định yêu cầu access token JWT (RS256) trong header `Authorization`; không nhận token qua query hoặc form. Endpoint công khai khai báo trong `t3tarot.security.public-paths`.
+- Không dùng session và cookie; CSRF tắt vì token đi bằng header. Nếu sau này refresh token đặt trong cookie thì endpoint refresh phải thêm chống CSRF.
+- Lỗi 401 và 403 trả `ProblemDetail` với `code` là `error.auth.unauthenticated` hoặc `error.auth.forbidden`.
+- Mọi lỗi chỉ trả mã lỗi dạng `error.<nhóm>.<lý do>` (ví dụ `error.invalid_param.is_missing`), không có `message`, `messageCode`, `title` hay `detail`; FE tự map mã ra thông báo.
+- Cấp token (đăng nhập, refresh) chưa có; module `identity` sẽ làm. Cách đăng nhập đã chốt trước mắt: username + mật khẩu (email bắt buộc, xác minh email) và social login Google, Facebook. Với social login, client lấy ID token của nhà cung cấp, server xác minh chữ ký, `aud`, `exp` rồi cấp JWT của T3Tarot. OTP email / SMS và Apple tạm hoãn.
 
 ## Test và coverage
 
@@ -88,7 +115,9 @@ mvn clean verify
 ```
 t3tarot-api/
 ├── CLAUDE.md                 quy tắc cho agent (Claude Code)
+├── docker/postgres/          Dockerfile và postgresql.conf của image PostgreSQL dev
 ├── docs/                     tài liệu gốc: tổng quan, đặc tả MVP, feature cốt lõi, ERD
+│   └── changelog/            changelog theo feature, sửa đè khi feature đổi
 ├── skills/
 │   ├── README.md             danh sách skill và cách cài
 │   ├── agent-skills/         skill làm một việc (SQL đường nóng, migration, review...)

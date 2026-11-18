@@ -14,7 +14,8 @@ Trả lời bằng tiếng Việt. Giữ thuật ngữ kỹ thuật bằng tiế
 | Hibernate cho CRUD, `JdbcClient` cho đường ghi nóng | Đã chốt |
 | Prometheus + Loki + Grafana | Đã chốt (không dùng ELK) |
 | Lombok | Đã chốt |
-| Đăng nhập (4 cách), LLM provider, tracing | Chưa chốt |
+| Đăng nhập: username + mật khẩu (email bắt buộc, xác minh email) và social login Google, Facebook; client lấy ID token của nhà cung cấp, server xác minh rồi cấp JWT riêng | Chốt trước mắt (18/11/2026). OTP email / SMS tạm hoãn. Apple Sign-In chưa quyết; có thể bắt buộc trên iOS, chưa kiểm quy định App Store |
+| LLM provider, tracing | Chưa chốt |
 
 ## Lệnh
 
@@ -36,9 +37,10 @@ Trước khi tạo file mới, dùng skill `project-structure`; cây thư mục 
 
 - `vn.t3tarot.api`: class main. Mỗi package con trực tiếp là một module Modulith.
 - Trong module: package gốc chỉ chứa interface công khai, DTO trả ra và event; `web` (controller), `usecase` (mỗi nghiệp vụ một class, nơi đặt `@Transactional`), `domain`, `infra` là nội bộ. Không viết interface + Impl 1-1, không dùng MapStruct.
-- `vn.t3tarot.api.common`: module `OPEN` chứa code dùng chung (giờ Việt Nam, SecureRandom, lỗi API, request id, idempotency key).
+- `vn.t3tarot.api.common`: module `OPEN` chứa code dùng chung (giờ Việt Nam, SecureRandom, lỗi API, request id, idempotency key, cấu hình Spring Security).
 - `src/main/resources/db/migration`: migration Flyway.
-- `docs/`: tài liệu gốc của dự án (spec, ERD).
+- `docker/<service>/`: Dockerfile và cấu hình của image dùng cho dev local (hiện có `postgres`).
+- `docs/`: tài liệu gốc của dự án (spec, ERD). `docs/changelog/`: changelog theo feature, do agent ghi và sửa đè sau mỗi task code (skill `changelog`).
 - `skills/`: agent skill và agent workflow, quy tắc chi tiết nằm trong `references/` của từng skill; xem mục cuối.
 
 ## Quy tắc bắt buộc
@@ -55,6 +57,9 @@ Trước khi tạo file mới, dùng skill `project-structure`; cây thư mục 
 10. Mỗi reading và mỗi câu hỏi tiếp lưu `model`, `prompt_version`, `content_version`, `reversal_mode`, `deck_id`.
 11. Tiền: `long` VND hoặc `BigDecimal` với `RoundingMode` rõ ràng, không `float`/`double`.
 12. Website và mobile app dùng chung một API. Mỗi endpoint phải xác định client nào dùng; khi app đã phát hành dùng endpoint thì không phá tương thích (không xoá, đổi tên, đổi nghĩa field, không thêm field request bắt buộc). Xem skill `client-compatibility`.
+13. Mọi đường dẫn mặc định yêu cầu access token JWT; endpoint công khai phải khai báo trong `t3tarot.security.public-paths` và nêu lý do trong PR. `userId` chỉ lấy từ `AuthenticatedUser` (claim `sub`), không nhận từ body, query hay path. Actuator chỉ ở `MANAGEMENT_PORT`, không mở ra ingress.
+14. Sau mỗi task có sửa code, ghi hoặc sửa đè `docs/changelog/<feature>.md` theo skill `changelog`. Phần đổi có liên quan đến changelog đã có thì sửa đè cho đúng trạng thái hiện hành, không nối thêm lịch sử (git giữ lịch sử).
+15. Lỗi trả cho client chỉ có mã lỗi, tuyệt đối không có câu chữ. Mã dạng `error.<nhóm>.<lý do>`: chữ thường, snake_case trong từng đoạn, đúng 3 đoạn ngăn bằng dấu chấm, ví dụ `error.invalid_param.is_missing`; FE tự parse mã ra thông báo. Body lỗi không có `message`, `messageCode`, `title`, `detail`, không có `message` của exception, không echo giá trị người dùng gửi. Lỗi theo từng tham số trả trong `errors` dạng `[{field, code}]`. Mã mới (kể cả của module) phải qua `ErrorCodeFormat` và có test; thêm, đổi, xoá mã là đổi API contract (xem `client-compatibility`).
 
 ## Quy tắc code
 
@@ -107,6 +112,7 @@ Quy tắc chi tiết nằm trong `references/` của từng skill. Khi làm vi�
 | `run-tests` | Chạy test, sửa, coverage | `skills/agent-skills/run-tests/references/testing.md` |
 | `client-compatibility` | Endpoint dùng cho website và mobile app; tương thích app cũ | `skills/agent-skills/client-compatibility/references/client-platforms.md` |
 | `project-structure` | Tạo hoặc di chuyển file: thư mục, package, tên | `skills/agent-skills/project-structure/references/structure.md`, `skills/agent-skills/project-structure/references/naming.md` |
+| `changelog` | Sau mỗi task code: ghi hoặc sửa đè changelog theo feature | `skills/agent-skills/changelog/references/changelog.md` |
 | `create-endpoint` | Workflow tạo endpoint mới | (dùng các skill trên) |
 | `modify-endpoint` | Workflow sửa endpoint | `skills/agent-workflows/modify-endpoint/references/workflow.md` |
 

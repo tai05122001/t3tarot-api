@@ -47,4 +47,4 @@ Mục đích: nhìn đường dẫn và tên là biết file thuộc module nào
 - Tiền tố `I` cho interface; hậu tố `Impl`, `Manager`, `Helper`, `Util`, `Processor`, `V2`, `New`.
 - Đặt class nghiệp vụ trong `common`; controller ngoài `web`; module khác import package con của module này.
 - Test tên `*IT` (surefire không chạy) hoặc tên không mô tả hành vi (`test1`, `shouldWork`).
-- Ghi quy tắc mới vào `docs/`; `docs/` chỉ chứa tài liệu gốc, quy tắc nằm trong `references/` của skill.
+- Ghi quy tắc mới vào `docs/`; `docs/` chỉ chứa tài liệu gốc và `docs/changelog/`, quy tắc nằm trong `references/` của skill.

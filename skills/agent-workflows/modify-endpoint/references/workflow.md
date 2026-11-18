@@ -79,5 +79,5 @@ Chạy và sửa tối đa 3 vòng, theo quy tắc ở `CLAUDE.md`. Không sửa
 
 ## Bước 6. Tổng kết
 
-Xuất: diff đã sửa, test đã chạy và kết quả, coverage của các class đã sửa, các mục ảnh hưởng đã xử lý, mục chưa xử lý. Kèm bảng ảnh hưởng theo client (website, iOS, Android, phiên bản app tối thiểu). Kèm changelog theo mẫu: thay đổi gì, vì sao, API / cờ bị ảnh hưởng, QA cần test gì, ghi chú rollout. Cuối cùng là Lưu ý và 2–4 câu hỏi tiếp.
+Xuất: diff đã sửa, test đã chạy và kết quả, coverage của các class đã sửa, các mục ảnh hưởng đã xử lý, mục chưa xử lý. Kèm bảng ảnh hưởng theo client (website, iOS, Android, phiên bản app tối thiểu). Changelog làm bằng skill `changelog`: sửa đè `docs/changelog/<feature>.md` (mẫu: thay đổi gì, vì sao, API / cấu hình / cờ bị ảnh hưởng, QA cần test gì, ghi chú rollout), báo đường dẫn file đã sửa. Cuối cùng là Lưu ý và 2–4 câu hỏi tiếp.
 
