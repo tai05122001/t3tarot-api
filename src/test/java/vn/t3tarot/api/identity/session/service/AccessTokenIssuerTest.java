@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import vn.t3tarot.api.common.constant.AccessTokenClaims;
+import vn.t3tarot.api.common.security.Role;
 import vn.t3tarot.api.common.security.SecurityProperties;
 import vn.t3tarot.api.common.security.TestJwtFactory;
 import vn.t3tarot.api.common.security.jwt.JwtDecoderConfig;
@@ -43,7 +44,17 @@ class AccessTokenIssuerTest {
     }
 
     private String issueNow() {
-        return issuer.issue(USER_A, SESSION_OF_USER_A, Clock.systemUTC().instant());
+        return issuer.issue(USER_A, SESSION_OF_USER_A, Role.USER, Clock.systemUTC().instant());
+    }
+
+    @Test
+    void carriesRoleAsRolesClaim() {
+        String adminToken = issuer.issue(USER_A, SESSION_OF_USER_A, Role.ADMIN, Clock.systemUTC().instant());
+
+        assertThat(decoder.decode(adminToken).getClaimAsStringList(AccessTokenClaims.ROLES))
+                .containsExactly("ADMIN");
+        assertThat(decoder.decode(issueNow()).getClaimAsStringList(AccessTokenClaims.ROLES))
+                .containsExactly("USER");
     }
 
     @Test
@@ -59,7 +70,7 @@ class AccessTokenIssuerTest {
     @Test
     void expiresAfterConfiguredLifetime() {
         Instant issuedAt = Clock.systemUTC().instant();
-        Jwt jwt = decoder.decode(issuer.issue(USER_A, SESSION_OF_USER_A, issuedAt));
+        Jwt jwt = decoder.decode(issuer.issue(USER_A, SESSION_OF_USER_A, Role.USER, issuedAt));
 
         assertThat(Duration.between(jwt.getIssuedAt(), jwt.getExpiresAt())).isEqualTo(Duration.ofMinutes(15));
         assertThat(issuer.expiresInSeconds()).isEqualTo(Duration.ofMinutes(15).toSeconds());

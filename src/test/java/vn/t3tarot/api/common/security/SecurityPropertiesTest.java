@@ -41,11 +41,14 @@ class SecurityPropertiesTest {
 
     @Test
     void reportsBlankJwtSettings() {
-        SecurityProperties.Jwt jwt = new SecurityProperties.Jwt("", " ", "");
+        SecurityProperties.Jwt jwt = new SecurityProperties.Jwt("", " ", "", null);
 
         assertThat(VALIDATOR.validate(jwt))
                 .extracting(violation -> violation.getPropertyPath().toString())
-                .containsExactlyInAnyOrder("issuer", "audience", "publicKey");
+                .containsExactlyInAnyOrder("issuer", "audience");
+        assertThatThrownBy(jwt::publicKeyPem)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("JWT public key is missing");
     }
 
     @Test
@@ -57,7 +60,7 @@ class SecurityPropertiesTest {
 
     @Test
     void jwtToStringDoesNotExposePublicKey() {
-        SecurityProperties.Jwt jwt = new SecurityProperties.Jwt("issuer", "audience", "KEY-MATERIAL");
+        SecurityProperties.Jwt jwt = new SecurityProperties.Jwt("issuer", "audience", "KEY-MATERIAL", null);
 
         assertThat(jwt.toString()).doesNotContain("KEY-MATERIAL");
     }

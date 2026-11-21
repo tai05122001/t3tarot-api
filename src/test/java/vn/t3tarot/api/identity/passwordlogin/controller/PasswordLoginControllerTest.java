@@ -94,6 +94,21 @@ class PasswordLoginControllerTest extends IdentityIntegrationTest {
         }
 
         @Test
+        void issuesUserRoleByDefault() throws Exception {
+            Account account = registerVerifiedAccount();
+
+            assertThat(rolesOf(loginTokens(account).accessToken())).containsExactly("USER");
+        }
+
+        @Test
+        void issuesAdminRoleAfterPromotion() throws Exception {
+            Account account = registerVerifiedAccount();
+            execute("UPDATE app_user SET role = 'ADMIN' WHERE id = ?", userIdOf(account));
+
+            assertThat(rolesOf(loginTokens(account).accessToken())).containsExactly("ADMIN");
+        }
+
+        @Test
         void doesNotEchoPasswordInResponse() throws Exception {
             Account account = registerVerifiedAccount();
 

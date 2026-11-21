@@ -24,7 +24,7 @@ class JwtDecoderConfigTest {
         SecurityProperties properties = new SecurityProperties(
                 new SecurityProperties.Cors(List.of(), List.of(), List.of(), List.of(), 3600),
                 new SecurityProperties.Jwt(
-                        TestJwtFactory.ISSUER, TestJwtFactory.AUDIENCE, TestJwtFactory.trustedPublicKeyBase64()),
+                        TestJwtFactory.ISSUER, TestJwtFactory.AUDIENCE, TestJwtFactory.trustedPublicKeyBase64(), null),
                 false,
                 List.of());
         decoder = new JwtDecoderConfig().jwtDecoder(properties);

@@ -35,6 +35,18 @@ class TokenControllerTest extends IdentityIntegrationTest {
         }
 
         @Test
+        void picksUpRoleChangedSinceLogin() throws Exception {
+            Account account = registerVerifiedAccount();
+            Tokens first = loginTokens(account);
+            assertThat(rolesOf(first.accessToken())).containsExactly("USER");
+            execute("UPDATE app_user SET role = 'ADMIN' WHERE id = ?", userIdOf(account));
+
+            Tokens second = refreshTokens(first.refreshToken());
+
+            assertThat(rolesOf(second.accessToken())).containsExactly("ADMIN");
+        }
+
+        @Test
         void keepsSameSessionAcrossRotations() throws Exception {
             Account account = registerVerifiedAccount();
             Tokens first = loginTokens(account);

@@ -1,6 +1,7 @@
 package vn.t3tarot.api.common.security;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -75,7 +76,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource(SecurityProperties properties) {
+    CorsConfigurationSource corsConfigurationSource(
+            SecurityProperties properties, @Value("${t3tarot.security.cors.excluded-paths:}") List<String> excludedPaths) {
         SecurityProperties.Cors cors = properties.cors();
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(cors.allowedOrigins());
@@ -86,7 +88,7 @@ public class SecurityConfig {
         configuration.setAllowCredentials(false);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-        return source;
+        return request -> excludedPaths.contains(request.getRequestURI()) ? null : source.getCorsConfiguration(request);
     }
 
     private static HttpSecurity statelessDefaults(HttpSecurity http) throws Exception {

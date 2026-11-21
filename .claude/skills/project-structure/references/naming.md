@@ -133,7 +133,7 @@ Migration: `V{n}__{động_từ}_{đối_tượng}.sql`, chữ thường, gạch
 ## Cấu hình và biến môi trường
 
 - Khoá trong `application.yml` của dự án: `t3tarot.<module>.<khoá-kebab-case>` (đề xuất), ví dụ `t3tarot.followup.max-per-reading`.
-- Biến môi trường: `UPPER_SNAKE_CASE`, tiền tố theo nhóm: `DB_`, `LLM_`, `SWAGGER_`, `JWT_`, `CORS_`, `MANAGEMENT_`. Mỗi biến mới phải có trong `.env.example` với giá trị giả.
+- Biến môi trường: `UPPER_SNAKE_CASE`, tiền tố theo nhóm: `DB_`, `LLM_`, `SWAGGER_`, `JWT_`, `CORS_`, `MANAGEMENT_`, `MAIL_`, `APP_`. Mỗi biến mới phải có trong `.env.example` với giá trị giả.
 
 ## Observability
 

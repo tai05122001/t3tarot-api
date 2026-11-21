@@ -3,8 +3,10 @@ package vn.t3tarot.api.common.security.jwt;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import vn.t3tarot.api.common.constant.AccessTokenClaims;
 import vn.t3tarot.api.common.security.AuthenticatedUser;
@@ -27,7 +29,8 @@ class AccessTokenAuthenticationTest {
     }
 
     private static AccessTokenAuthentication authenticationWithClaim(Object sessionClaim) {
-        return new AccessTokenAuthentication(jwtWithClaim(sessionClaim), new AuthenticatedUser(USER_A));
+        return new AccessTokenAuthentication(
+                jwtWithClaim(sessionClaim), new AuthenticatedUser(USER_A), List.of(new SimpleGrantedAuthority("ROLE_USER")));
     }
 
     @Test
@@ -54,5 +57,6 @@ class AccessTokenAuthenticationTest {
         assertThat(authentication.getName()).isEqualTo(USER_A.toString());
         assertThat(authentication.isAuthenticated()).isTrue();
         assertThat(authentication.getCredentials()).isInstanceOf(Jwt.class);
+        assertThat(authentication.getAuthorities()).extracting("authority").containsExactly("ROLE_USER");
     }
 }

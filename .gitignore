@@ -10,6 +10,7 @@ HELP.md
 !.env.example
 *.pem
 *.key
+secrets/
 *.p12
 *.jks
 
@@ -32,6 +33,9 @@ CLAUDE.local.md
 .claude/settings.local.json
 .claude/worktrees/
 Claude outputs/
+
+# API client collections (local only)
+bruno/
 
 # Code quality
 .scannerwork/

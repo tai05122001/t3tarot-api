@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{page/fragments :: head('Kết quả xác nhận email')}"></head>
+<body>
+<div class="page">
+<div th:replace="~{page/fragments :: brand}"></div>
+<main class="content" th:switch="${outcome}">
+<th:block th:case="'VERIFIED'">
+<div class="icon">
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" stroke="#E3B23C" stroke-width="2" aria-hidden="true"><circle cx="36" cy="36" r="34"></circle><path d="M23 37l9 9 17-19"></path></svg>
+</div>
+<div class="heading">
+<h1>Đã xác nhận email</h1>
+<p>Email của bạn đã được xác nhận. Bạn có thể đăng nhập vào T3Tarot.</p>
+</div>
+<a class="button" th:href="${loginUrl}">Đăng nhập</a>
+</th:block>
+<th:block th:case="'ALREADY_VERIFIED'">
+<div class="icon">
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" stroke="#E3B23C" stroke-width="2" aria-hidden="true"><circle cx="36" cy="36" r="34"></circle><path d="M23 37l9 9 17-19"></path></svg>
+</div>
+<div class="heading">
+<h1>Email đã được xác nhận trước đó</h1>
+<p>Bạn không cần làm gì thêm.</p>
+</div>
+<a class="button" th:href="${homeUrl}">Vào T3Tarot</a>
+</th:block>
+<th:block th:case="'LINK_USED'">
+<div class="icon">
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" stroke="#F08A6B" stroke-width="2" aria-hidden="true"><circle cx="36" cy="36" r="34"></circle><path d="M24 48L48 24"></path></svg>
+</div>
+<div class="heading">
+<h1>Link này đã được dùng</h1>
+<p>Mỗi link chỉ dùng được một lần. Nếu email đã được xác nhận, bạn có thể đăng nhập.</p>
+</div>
+<a class="button" th:href="${loginUrl}">Đăng nhập</a>
+</th:block>
+<th:block th:case="'LINK_EXPIRED'">
+<div class="icon">
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" stroke="#F08A6B" stroke-width="2" aria-hidden="true"><circle cx="36" cy="36" r="34"></circle><path d="M36 18v18l11 8"></path></svg>
+</div>
+<div class="heading">
+<h1>Link đã hết hạn</h1>
+<p th:text="|Link chỉ có hiệu lực trong ${lifetime}. Gửi link mới để tiếp tục.|">Link chỉ có hiệu lực trong 24 giờ. Gửi link mới để tiếp tục.</p>
+</div>
+<a class="button" th:href="${resendUrl}">Gửi link mới</a>
+</th:block>
+<th:block th:case="*">
+<div class="icon">
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" stroke="#F08A6B" stroke-width="2" aria-hidden="true"><circle cx="36" cy="36" r="34"></circle><path d="M24 24l24 24M48 24L24 48"></path></svg>
+</div>
+<div class="heading">
+<h1>Link không hợp lệ</h1>
+<p>Link không đúng hoặc đã bị cắt bớt. Gửi link mới để tiếp tục.</p>
+</div>
+<a class="button" th:href="${resendUrl}">Gửi link mới</a>
+</th:block>
+</main>
+</div>
+</body>
+</html>

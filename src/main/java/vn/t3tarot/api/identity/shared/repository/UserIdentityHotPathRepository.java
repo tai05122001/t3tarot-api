@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 import vn.t3tarot.api.identity.shared.entity.LinkedIdentity;
@@ -22,6 +23,8 @@ public class UserIdentityHotPathRepository {
             SELECT EXISTS (
                 SELECT 1 FROM user_identity WHERE email_normalized = :email AND provider <> :provider)
             """;
+
+
 
     private static final String INSERT_EMAIL_IDENTITY = """
             INSERT INTO user_identity (id, user_id, provider, provider_subject, email_normalized, created_at)

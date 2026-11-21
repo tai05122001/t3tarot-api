@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{page/fragments :: head('Xác nhận email')}"></head>
+<body>
+<div class="page">
+<div th:replace="~{page/fragments :: brand}"></div>
+<main class="content">
+<div class="icon">
+<svg width="132" height="196" viewBox="0 0 132 196" fill="none" stroke="#E3B23C" stroke-width="1.5" aria-hidden="true"><rect x="1" y="1" width="130" height="194" rx="10" fill="#1E2741"></rect><rect x="9" y="9" width="114" height="178" rx="5"></rect><circle cx="66" cy="98" r="18"></circle><path d="M66 64v14M66 118v14M32 98h14M86 98h14M42 74l10 10M80 112l10 10M90 74l-10 10M52 112l-10 10"></path><path d="M66 24l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"></path><circle cx="66" cy="166" r="4"></circle></svg>
+</div>
+<div class="heading">
+<h1>Xác nhận email</h1>
+<p>Bấm nút bên dưới để hoàn tất xác nhận email cho tài khoản T3Tarot của bạn.</p>
+</div>
+<form method="post" th:action="@{${actionPath}}">
+<input type="hidden" name="token" th:value="${token}">
+<button type="submit" class="button">Xác nhận email</button>
+</form>
+</main>
+<p class="note">Không phải bạn yêu cầu? Đóng trang này, tài khoản của bạn không bị thay đổi gì.</p>
+</div>
+</body>
+</html>

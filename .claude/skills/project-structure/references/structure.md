@@ -9,7 +9,10 @@ t3tarot-api/
 ├── CLAUDE.md                     quy tắc chung cho agent
 ├── pom.xml, lombok.config, docker-compose.yml, .env.example
 ├── docker/<service>/             Dockerfile + cấu hình image dev (hiện có postgres/)
+├── bruno/                        collection Bruno (bruno.json, environments/, <module>/<NN>-<tên>.bru), happy case mỗi endpoint
+├── curl/<module>/<NN>-<tên>.curl  curl happy case mỗi endpoint, cùng request với bruno/
 ├── docs/                         tài liệu gốc của dự án (spec, ERD)
+│   ├── api/endpoints.md          danh sách và thống kê mọi endpoint, workflow endpoint cập nhật mỗi lần thêm hoặc sửa
 │   └── changelog/                changelog theo feature (README.md là mục lục), sửa đè khi feature đổi
 ├── .claude/                      cấu hình AI, bản đồ ở .claude/README.md
 │   ├── agents/<vai-trò>.md       agent theo vai trò
@@ -30,7 +33,7 @@ t3tarot-api/
     │   │   ├── idempotency/      IdempotencyKey
     │   │   ├── random/           bean SecureRandom
     │   │   ├── security/         SecurityConfig, SecurityProperties, AuthenticatedUser, ProblemDetailSecurityHandler, ManagementPortRequestMatcher
-    │   │   │   ├── jwt/          JwtDecoderConfig, RsaPublicKeys, AccessTokenAuthentication, AccessTokenAuthenticationConverter
+    │   │   │   ├── jwt/          JwtDecoderConfig, RsaPublicKeys, RsaPrivateKeys, PemKeySource, AccessTokenAuthentication, AccessTokenAuthenticationConverter
     │   │   │   └── ratelimit/    RateLimitConfig, RateLimitProperties, RateLimitCounter, RateLimitDecision
     │   │   ├── time/             VietnamClock, bean Clock
     │   │   └── web/              RequestIdFilter, PageQuery, PageResponse
@@ -60,6 +63,9 @@ t3tarot-api/
 | Dockerfile, cấu hình image dev | `docker/<service>/` |
 | Tài liệu gốc (spec, ERD) | `docs/` |
 | Changelog của feature | `docs/changelog/<feature>.md`, mục lục `docs/changelog/README.md` |
+| Danh sách endpoint (thống kê, tra cứu nhanh) | `docs/api/endpoints.md` |
+| Happy case cho Bruno | `bruno/<module>/<NN>-<tên>.bru`, `NN` trùng số thứ tự trong `endpoints.md` |
+| Curl happy case | `curl/<module>/<NN>-<tên>.curl` |
 | Quy tắc, SQL mẫu, quy trình của một skill | `.claude/skills/<tên>/references/` hoặc `.claude/workflows/<tên>/references/` của skill sở hữu |
 | Tài liệu dùng chung từ 2 skill trở lên | `.claude/references/` |
 | Skill mới | `.claude/skills/<tên>/SKILL.md`; tên không chứa tên dự án |

@@ -23,6 +23,9 @@ class T3TarotApiApplicationTests {
     static void jwtKeys(DynamicPropertyRegistry registry) {
         registry.add("t3tarot.security.jwt.public-key", TestJwtFactory::trustedPublicKeyBase64);
         registry.add("t3tarot.identity.private-key", TestJwtFactory::trustedPrivateKeyBase64);
+        registry.add("t3tarot.security.jwt.public-key-location", () -> "");
+        registry.add("t3tarot.identity.private-key-location", () -> "");
+        registry.add("t3tarot.verification-mail.enabled", () -> "false");
     }
 
     @Autowired

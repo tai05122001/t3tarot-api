@@ -44,6 +44,7 @@ import vn.t3tarot.api.common.security.jwt.JwtDecoderConfig;
             "t3tarot.security.jwt.issuer=" + TestJwtFactory.ISSUER,
             "t3tarot.security.jwt.audience=" + TestJwtFactory.AUDIENCE,
             "t3tarot.security.cors.allowed-origins=https://app.t3tarot.test",
+            "t3tarot.security.cors.excluded-paths=/stub/public",
             "t3tarot.security.public-paths=/stub/public",
             "t3tarot.security.swagger-public=false",
             "management.server.port=8081",
@@ -71,6 +72,10 @@ class SecurityConfigTest {
 
     private static String validBearer() {
         return BEARER + TestJwtFactory.trustedToken(TestJwtFactory.validClaims());
+    }
+
+    private static String bearerWithRoles(String... roles) {
+        return BEARER + TestJwtFactory.trustedTokenWithRoles(TestJwtFactory.validClaims(), List.of(roles));
     }
 
     @Nested
@@ -141,6 +146,26 @@ class SecurityConfigTest {
             mockMvc.perform(get("/stub/admin").header("Authorization", validBearer()))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("error.auth.forbidden"));
+        }
+
+        @Test
+        void returns403WhenTokenCarriesOnlyUserRole() throws Exception {
+            mockMvc.perform(get("/stub/admin").header("Authorization", bearerWithRoles("USER")))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("error.auth.forbidden"));
+        }
+
+        @Test
+        void allowsAdminRoleOnAdminOnlyMethod() throws Exception {
+            mockMvc.perform(get("/stub/admin").header("Authorization", bearerWithRoles("ADMIN")))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("admin"));
+        }
+
+        @Test
+        void ignoresUnknownRoleValuesInToken() throws Exception {
+            mockMvc.perform(get("/stub/admin").header("Authorization", bearerWithRoles("SUPERUSER", "admin")))
+                    .andExpect(status().isForbidden());
         }
     }
 
@@ -274,6 +299,19 @@ class SecurityConfigTest {
                             .header("Access-Control-Request-Method", "POST"))
                     .andExpect(status().isForbidden())
                     .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
+        }
+
+        @Test
+        void skipsCorsForExcludedPathEvenWhenOriginIsNull() throws Exception {
+            mockMvc.perform(get("/stub/public").header("Origin", "null"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("open"));
+        }
+
+        @Test
+        void stillRejectsNullOriginOnPathsThatAreNotExcluded() throws Exception {
+            mockMvc.perform(get("/stub/me").header("Origin", "null").header("Authorization", validBearer()))
+                    .andExpect(status().isForbidden());
         }
 
         @Test

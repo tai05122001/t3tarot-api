@@ -25,6 +25,7 @@ import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import vn.t3tarot.api.common.constant.AccessTokenClaims;
 
 public final class TestJwtFactory {
 
@@ -68,11 +69,15 @@ public final class TestJwtFactory {
     }
 
     public static String trustedToken(Claims claims) {
-        return sign(TRUSTED_KEY_PAIR, claims);
+        return sign(TRUSTED_KEY_PAIR, claims, null);
+    }
+
+    public static String trustedTokenWithRoles(Claims claims, List<String> roles) {
+        return sign(TRUSTED_KEY_PAIR, claims, roles);
     }
 
     public static String untrustedToken(Claims claims) {
-        return sign(UNTRUSTED_KEY_PAIR, claims);
+        return sign(UNTRUSTED_KEY_PAIR, claims, null);
     }
 
     public static String unsignedToken(Claims claims) {
@@ -98,7 +103,7 @@ public final class TestJwtFactory {
         }
     }
 
-    private static String sign(KeyPair keyPair, Claims claims) {
+    private static String sign(KeyPair keyPair, Claims claims, List<String> roles) {
         RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
                 .privateKey((RSAPrivateKey) keyPair.getPrivate())
                 .build();
@@ -118,6 +123,9 @@ public final class TestJwtFactory {
         }
         if (claims.withExpiration()) {
             builder.expiresAt(expiresAt);
+        }
+        if (roles != null) {
+            builder.claim(AccessTokenClaims.ROLES, roles);
         }
         return encoder.encode(JwtEncoderParameters.from(JwsHeader.with(SignatureAlgorithm.RS256).build(), builder.build()))
                 .getTokenValue();

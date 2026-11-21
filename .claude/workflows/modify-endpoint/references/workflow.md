@@ -34,7 +34,7 @@ Phân loại (một thay đổi có thể thuộc nhiều loại):
 - State machine của reading / followup: có thêm hoặc đổi cạnh chuyển trạng thái không.
 - Dữ liệu đang có: bản ghi cũ có hợp lệ với logic mới không.
 - Observability: metric, log, dashboard đang dựa vào endpoint này.
-- Test hiện có sẽ vỡ, tài liệu và changelog cần cập nhật.
+- Test hiện có sẽ vỡ, Swagger, tài liệu và changelog cần cập nhật.
 
 Kết luận mức ảnh hưởng:
 
@@ -77,7 +77,26 @@ Mobile dùng endpoint (mức Trung và Cao): thêm test request như app cũ g�
 
 Chạy và sửa tối đa 3 vòng, theo quy tắc ở `CLAUDE.md`. Không sửa test cho xanh; xem các điều cấm ở đó.
 
-## Bước 6. Tổng kết
+## Bước 6. Cập nhật Swagger
 
-Xuất: diff đã sửa, test đã chạy và kết quả, coverage của các class đã sửa, các mục ảnh hưởng đã xử lý, mục chưa xử lý. Kèm bảng ảnh hưởng theo client (website, iOS, Android, phiên bản app tối thiểu). Changelog làm bằng skill `changelog`: sửa đè `docs/changelog/<feature>.md` (mẫu: thay đổi gì, vì sao, API / cấu hình / cờ bị ảnh hưởng, QA cần test gì, ghi chú rollout), báo đường dẫn file đã sửa. Cuối cùng là Lưu ý và 2–4 câu hỏi tiếp.
+Sửa annotation OpenAPI cho khớp hành vi sau thay đổi, theo `.claude/references/swagger.md` (mục "Khi sửa endpoint"):
+
+- Field mới: thêm `@Schema` (mô tả, ví dụ giả, bắt buộc hay không, mặc định nếu tùy chọn).
+- Đổi validate: sửa `@Schema` cho khớp Bean Validation.
+- Thêm hoặc bỏ mã lỗi, đổi status code: sửa `@ApiResponse`.
+- Field bị thay thế mà app cũ còn dùng: `@Schema(deprecated = true)`, trỏ sang field mới; không xoá.
+- Đổi client dùng, công khai / cần token, idempotency: sửa `description` của `@Operation`.
+- Refactor thuần: không sửa annotation, nhưng kiểm `/v3/api-docs` trước và sau giống nhau.
+
+Kiểm bằng `/swagger-ui/index.html` hoặc `/v3/api-docs` với `SWAGGER_ENABLED=true`. File chứa annotation phải có trong checklist Bước 3.
+
+## Bước 7. Cập nhật danh sách endpoint
+
+Sửa đè dòng trong "Bảng tổng hợp" và mục "Chi tiết" của endpoint trong `docs/api/endpoints.md` cho đúng hành vi sau thay đổi: field và ràng buộc, response, mã lỗi riêng, quyền, `Idempotency-Key`, client, trạng thái. Đổi quyền (công khai / cần token) thì sửa cả bảng "Thống kê". Sửa ngày cập nhật ở đầu file. Bỏ endpoint thì đổi trạng thái thành "Đã gỡ", không xoá dòng. Refactor thuần không đổi hợp đồng thì không sửa. Quy tắc đầy đủ ở mục "Quy tắc cập nhật file này" cuối file.
+
+Đổi header, body, path hoặc quyền thì sửa luôn happy case: file Bruno `bruno/<module>/<NN>-<tên>.bru` và file curl `curl/<module>/<NN>-<tên>.curl`, theo README trong hai thư mục đó.
+
+## Bước 8. Tổng kết
+
+Xuất: diff đã sửa, test đã chạy và kết quả, coverage của các class đã sửa, phần Swagger và `docs/api/endpoints.md` đã sửa (Swagger đã kiểm bằng UI hay chưa), các mục ảnh hưởng đã xử lý, mục chưa xử lý. Kèm bảng ảnh hưởng theo client (website, iOS, Android, phiên bản app tối thiểu). Changelog làm bằng skill `changelog`: sửa đè `docs/changelog/<feature>.md` (mẫu: thay đổi gì, vì sao, API / cấu hình / cờ bị ảnh hưởng, QA cần test gì, ghi chú rollout), báo đường dẫn file đã sửa. Cuối cùng là Lưu ý và 2–4 câu hỏi tiếp.
 

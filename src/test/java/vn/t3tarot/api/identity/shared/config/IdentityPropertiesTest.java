@@ -1,6 +1,7 @@
 package vn.t3tarot.api.identity.shared.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -21,6 +22,7 @@ class IdentityPropertiesTest {
         IdentityProperties base = IdentityTestProperties.identity(privateKey);
         return new IdentityProperties(
                 base.privateKey(),
+                base.privateKeyLocation(),
                 base.keyId(),
                 base.accessTokenTtl(),
                 base.refreshTokenTtl(),
@@ -46,8 +48,12 @@ class IdentityPropertiesTest {
     }
 
     @Test
-    void rejectsBlankPrivateKey() {
-        assertThat(violatedProperties(withPrivateKeyAndStrength(" ", 12))).containsExactly("privateKey");
+    void failsFastWhenPrivateKeyIsBlankAndNoLocationIsSet() {
+        IdentityProperties properties = withPrivateKeyAndStrength(" ", 12);
+
+        assertThatThrownBy(properties::privateKeyPem)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("JWT private key is missing");
     }
 
     @Test

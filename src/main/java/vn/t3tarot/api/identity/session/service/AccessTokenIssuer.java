@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
 import vn.t3tarot.api.common.constant.AccessTokenClaims;
+import vn.t3tarot.api.common.security.Role;
 import vn.t3tarot.api.common.security.SecurityProperties;
 import vn.t3tarot.api.identity.shared.config.IdentityProperties;
 
@@ -22,7 +23,7 @@ class AccessTokenIssuer {
     private final SecurityProperties securityProperties;
     private final IdentityProperties identityProperties;
 
-    String issue(UUID userId, UUID sessionId, Instant now) {
+    String issue(UUID userId, UUID sessionId, Role role, Instant now) {
         SecurityProperties.Jwt jwt = securityProperties.jwt();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(jwt.issuer())
@@ -31,6 +32,7 @@ class AccessTokenIssuer {
                 .issuedAt(now)
                 .expiresAt(now.plus(identityProperties.accessTokenTtl()))
                 .claim(AccessTokenClaims.SESSION_ID, sessionId.toString())
+                .claim(AccessTokenClaims.ROLES, List.of(role.name()))
                 .build();
         JwsHeader header = JwsHeader.with(SignatureAlgorithm.RS256)
                 .keyId(identityProperties.keyId())
