@@ -8,12 +8,12 @@ API là resource server stateless: mọi đường dẫn yêu cầu access token
 
 ## Thay đổi gì
 
-- `common/security`:
+- `common/security` (gốc nhóm: `SecurityConfig`, `SecurityProperties`, `AuthenticatedUser`, `ProblemDetailSecurityHandler`, `ManagementPortRequestMatcher`; package con `jwt` và `ratelimit`):
   - `SecurityConfig`: hai filter chain. `managementFilterChain` (thứ tự 1) chỉ áp dụng cho cổng quản trị; `apiFilterChain` bật CORS, tắt CSRF, không session, tắt form login, basic, logout và request cache, đặt header bảo mật, `anyRequest().authenticated()`, resource server JWT.
   - `SecurityProperties` (`t3tarot.security`): `cors` (danh sách origin chính xác, không `*`, không credentials), `jwt` (`issuer`, `audience`, `publicKey`), `swaggerPublic`, `publicPaths`.
-  - `JwtDecoderConfig`: Nimbus RS256; kiểm chữ ký, `iss`, `aud`, `exp`, `sub` có mặt.
-  - `RsaPublicKeys.parse`: nhận PEM, base64 hoặc chuỗi có `\n` escape; từ chối RSA dưới 2048 bit.
-  - `AuthenticatedUser(userId)` lấy từ claim `sub` (UUID); `AccessTokenAuthentication`, `AccessTokenAuthenticationConverter` (từ chối `sub` không phải UUID).
+  - `jwt/JwtDecoderConfig`: Nimbus RS256; kiểm chữ ký, `iss`, `aud`, `exp`, `sub` có mặt.
+  - `jwt/RsaPublicKeys.parse`: nhận PEM, base64 hoặc chuỗi có `\n` escape; từ chối RSA dưới 2048 bit.
+  - `AuthenticatedUser(userId)` lấy từ claim `sub` (UUID); `jwt/AccessTokenAuthentication`, `jwt/AccessTokenAuthenticationConverter` (từ chối `sub` không phải UUID).
   - `ProblemDetailSecurityHandler`: 401 và 403 sinh trong filter đi qua `HandlerExceptionResolver` để cùng định dạng `ProblemDetail` với `GlobalExceptionHandler`; 401 kèm `WWW-Authenticate: Bearer`.
   - `ManagementPortRequestMatcher`: chain quản trị chỉ khớp khi cổng quản trị khác cổng ứng dụng và request đến đúng cổng đó.
 - Header bảo mật: `nosniff`, `Cache-Control: no-store`, CSP `default-src 'none'; frame-ancestors 'none'`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, `X-Frame-Options: DENY`, HSTS (`max-age=63072000; includeSubDomains`, không `preload`).
@@ -34,7 +34,7 @@ API là resource server stateless: mọi đường dẫn yêu cầu access token
 - Cách đăng nhập: username + mật khẩu (username kèm email bắt buộc, xác minh email) và social login Google, Facebook.
 - Social login: client lấy ID token của nhà cung cấp, server xác minh chữ ký, `aud`, `exp` rồi cấp JWT của T3Tarot. Giữ stateless, dùng chung web và app.
 - Tạm hoãn: OTP email, OTP SMS, Apple Sign-In. Chưa xoá khỏi thiết kế.
-- Việc còn mở và việc phải hỏi trước khi làm nằm ở `skills/agent-skills/new-module/references/architecture.md` mục "Điểm còn mở": migration cho mật khẩu và username, thuật toán băm (Giả định Argon2id), chống brute force và tạo tài khoản hàng loạt, kênh gửi email, Apple Sign-In trên iOS.
+- Việc còn mở và việc phải hỏi trước khi làm nằm ở `.claude/skills/new-module/references/architecture.md` mục "Điểm còn mở": migration cho mật khẩu và username, thuật toán băm (Giả định Argon2id), chống brute force và tạo tài khoản hàng loạt, kênh gửi email, Apple Sign-In trên iOS.
 - Tài liệu spec F8 và ERD vẫn mô tả bốn cách đăng nhập; cần cập nhật khi viết `identity`.
 
 ## Ảnh hưởng
@@ -69,9 +69,9 @@ Chưa xác minh với Spring Security 7: `permissionsPolicy`, `frameOptions().de
 
 ## File chính
 
-- `src/main/java/vn/t3tarot/api/common/security/`
+- `src/main/java/vn/t3tarot/api/common/security/`, `.../security/jwt/`, `.../security/ratelimit/`
 - `src/main/resources/application.yml`, `.env.example`, `pom.xml`
-- `src/test/java/vn/t3tarot/api/common/security/`
+- `src/test/java/vn/t3tarot/api/common/security/`, `.../security/jwt/`, `.../security/ratelimit/`
 
 ## Liên quan
 

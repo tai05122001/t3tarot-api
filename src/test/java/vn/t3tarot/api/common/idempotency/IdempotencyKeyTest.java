@@ -10,7 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import vn.t3tarot.api.common.error.ApiException;
-import vn.t3tarot.api.common.error.CommonErrorCode;
+import vn.t3tarot.api.common.constant.CommonErrorCode;
 
 class IdempotencyKeyTest {
 

@@ -35,6 +35,8 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import vn.t3tarot.api.common.error.GlobalExceptionHandler;
 import vn.t3tarot.api.common.security.TestJwtFactory.Claims;
+import vn.t3tarot.api.common.security.jwt.AccessTokenAuthenticationConverter;
+import vn.t3tarot.api.common.security.jwt.JwtDecoderConfig;
 
 @SpringJUnitWebConfig(SecurityConfigTest.TestApplication.class)
 @TestPropertySource(

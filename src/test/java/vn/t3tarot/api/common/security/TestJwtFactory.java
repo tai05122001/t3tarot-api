@@ -26,19 +26,20 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
-final class TestJwtFactory {
+public final class TestJwtFactory {
 
-    static final String ISSUER = "https://issuer.t3tarot.test";
-    static final String AUDIENCE = "t3tarot-api";
-    static final String USER_A = "3f2a9c1e-7b4d-4e8a-9c2f-1a2b3c4d5e6f";
+    public static final String ISSUER = "https://issuer.t3tarot.test";
+    public static final String AUDIENCE = "t3tarot-api";
+    public static final String USER_A = "3f2a9c1e-7b4d-4e8a-9c2f-1a2b3c4d5e6f";
 
+    private static final Duration ISSUED_BEFORE_EXPIRY = Duration.ofMinutes(1);
     private static final KeyPair TRUSTED_KEY_PAIR = generateKeyPair(2048);
     private static final KeyPair UNTRUSTED_KEY_PAIR = generateKeyPair(2048);
 
     private TestJwtFactory() {
     }
 
-    static KeyPair generateKeyPair(int bits) {
+    public static KeyPair generateKeyPair(int bits) {
         try {
             KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
             generator.initialize(bits);
@@ -48,36 +49,40 @@ final class TestJwtFactory {
         }
     }
 
-    static String trustedPublicKeyBase64() {
+    public static String trustedPublicKeyBase64() {
         return Base64.getEncoder().encodeToString(TRUSTED_KEY_PAIR.getPublic().getEncoded());
     }
 
-    static String trustedPublicKeyPem() {
+    public static String trustedPrivateKeyBase64() {
+        return Base64.getEncoder().encodeToString(TRUSTED_KEY_PAIR.getPrivate().getEncoded());
+    }
+
+    public static String trustedPublicKeyPem() {
         String body = Base64.getMimeEncoder(64, "\n".getBytes(StandardCharsets.US_ASCII))
                 .encodeToString(TRUSTED_KEY_PAIR.getPublic().getEncoded());
         return "-----BEGIN PUBLIC KEY-----\n" + body + "\n-----END PUBLIC KEY-----\n";
     }
 
-    static Claims validClaims() {
+    public static Claims validClaims() {
         return new Claims(USER_A, ISSUER, List.of(AUDIENCE), Duration.ofMinutes(10), true);
     }
 
-    static String trustedToken(Claims claims) {
+    public static String trustedToken(Claims claims) {
         return sign(TRUSTED_KEY_PAIR, claims);
     }
 
-    static String untrustedToken(Claims claims) {
+    public static String untrustedToken(Claims claims) {
         return sign(UNTRUSTED_KEY_PAIR, claims);
     }
 
-    static String unsignedToken(Claims claims) {
+    public static String unsignedToken(Claims claims) {
         String header = base64Url("{\"alg\":\"none\",\"typ\":\"JWT\"}");
         String payload = base64Url("{\"sub\":\"" + claims.subject() + "\",\"iss\":\"" + claims.issuer()
                 + "\",\"aud\":[\"" + AUDIENCE + "\"],\"exp\":" + Instant.now().plusSeconds(600).getEpochSecond() + "}");
         return header + "." + payload + ".";
     }
 
-    static String hmacTokenSignedWithPublicKey(Claims claims) {
+    public static String hmacTokenSignedWithPublicKey(Claims claims) {
         try {
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .subject(claims.subject())
@@ -98,7 +103,9 @@ final class TestJwtFactory {
                 .privateKey((RSAPrivateKey) keyPair.getPrivate())
                 .build();
         NimbusJwtEncoder encoder = new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(rsaKey)));
-        Instant issuedAt = Instant.now();
+        Instant now = Instant.now();
+        Instant expiresAt = now.plus(claims.lifetime());
+        Instant issuedAt = expiresAt.isBefore(now) ? expiresAt.minus(ISSUED_BEFORE_EXPIRY) : now;
         JwtClaimsSet.Builder builder = JwtClaimsSet.builder().issuedAt(issuedAt);
         if (claims.subject() != null) {
             builder.subject(claims.subject());
@@ -110,7 +117,7 @@ final class TestJwtFactory {
             builder.audience(claims.audience());
         }
         if (claims.withExpiration()) {
-            builder.expiresAt(issuedAt.plus(claims.lifetime()));
+            builder.expiresAt(expiresAt);
         }
         return encoder.encode(JwtEncoderParameters.from(JwsHeader.with(SignatureAlgorithm.RS256).build(), builder.build()))
                 .getTokenValue();
@@ -120,25 +127,25 @@ final class TestJwtFactory {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(json.getBytes(StandardCharsets.UTF_8));
     }
 
-    record Claims(String subject, String issuer, List<String> audience, Duration lifetime, boolean withExpiration) {
+    public record Claims(String subject, String issuer, List<String> audience, Duration lifetime, boolean withExpiration) {
 
-        Claims withSubject(String newSubject) {
+        public Claims withSubject(String newSubject) {
             return new Claims(newSubject, issuer, audience, lifetime, withExpiration);
         }
 
-        Claims withIssuer(String newIssuer) {
+        public Claims withIssuer(String newIssuer) {
             return new Claims(subject, newIssuer, audience, lifetime, withExpiration);
         }
 
-        Claims withAudience(List<String> newAudience) {
+        public Claims withAudience(List<String> newAudience) {
             return new Claims(subject, issuer, newAudience, lifetime, withExpiration);
         }
 
-        Claims withLifetime(Duration newLifetime) {
+        public Claims withLifetime(Duration newLifetime) {
             return new Claims(subject, issuer, audience, newLifetime, withExpiration);
         }
 
-        Claims withoutExpiration() {
+        public Claims withoutExpiration() {
             return new Claims(subject, issuer, audience, lifetime, false);
         }
     }

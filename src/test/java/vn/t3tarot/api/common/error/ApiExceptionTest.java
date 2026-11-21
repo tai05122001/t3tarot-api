@@ -3,6 +3,7 @@ package vn.t3tarot.api.common.error;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import vn.t3tarot.api.common.constant.CommonErrorCode;
 
 class ApiExceptionTest {
 

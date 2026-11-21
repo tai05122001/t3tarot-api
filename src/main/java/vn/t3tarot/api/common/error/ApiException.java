@@ -1,5 +1,7 @@
 package vn.t3tarot.api.common.error;
 
+import vn.t3tarot.api.common.constant.ErrorCode;
+
 public class ApiException extends RuntimeException {
 
     private final transient ErrorCode errorCode;
