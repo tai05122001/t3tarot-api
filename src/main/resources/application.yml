@@ -97,6 +97,11 @@ t3tarot:
     web-login-path: ${APP_WEB_LOGIN_PATH:/login}
     web-resend-path: ${APP_WEB_RESEND_PATH:/verify-email}
     web-home-path: ${APP_WEB_HOME_PATH:/}
+    async:
+      enabled: ${MAIL_ASYNC_ENABLED:true}
+      pool-size: ${MAIL_ASYNC_POOL_SIZE:4}
+      queue-capacity: ${MAIL_ASYNC_QUEUE_CAPACITY:200}
+      shutdown-await: ${MAIL_ASYNC_SHUTDOWN_AWAIT:10s}
   identity:
     private-key: ${JWT_PRIVATE_KEY:}
     private-key-location: ${JWT_PRIVATE_KEY_LOCATION:}

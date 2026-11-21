@@ -4,11 +4,13 @@ import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import vn.t3tarot.api.common.random.UuidV7Generator;
 import vn.t3tarot.api.identity.emailverification.client.VerificationMailSender;
+import vn.t3tarot.api.identity.emailverification.config.VerificationMailDispatcher;
 import vn.t3tarot.api.identity.emailverification.repository.EmailVerificationHotPathRepository;
 import vn.t3tarot.api.identity.shared.config.IdentityProperties;
 import vn.t3tarot.api.identity.shared.service.OpaqueTokens.OpaqueToken;
@@ -23,6 +25,7 @@ class EmailVerificationIssuer {
     private final OpaqueTokens opaqueTokens;
     private final EmailVerificationHotPathRepository verifications;
     private final VerificationMailSender mailSender;
+    private final VerificationMailDispatcher dispatcher;
     private final IdentityProperties properties;
 
     void issue(UUID userId, UUID identityId, String email, Instant now) {
@@ -36,28 +39,36 @@ class EmailVerificationIssuer {
                 now.plus(properties.emailVerificationTtl()),
                 now.minus(properties.emailVerificationResendInterval()));
         if (isInserted) {
-            sendAfterCommit(email, token.getValue());
+            sendAfterCommit(userId, email, token.getValue());
         }
     }
 
-    private void sendAfterCommit(String email, String tokenValue) {
+    private void sendAfterCommit(UUID userId, String email, String tokenValue) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            deliver(email, tokenValue);
+            dispatch(userId, email, tokenValue);
             return;
         }
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                deliver(email, tokenValue);
+                dispatch(userId, email, tokenValue);
             }
         });
     }
 
-    private void deliver(String email, String tokenValue) {
+    private void dispatch(UUID userId, String email, String tokenValue) {
+        try {
+            dispatcher.dispatch(() -> deliver(userId, email, tokenValue));
+        } catch (TaskRejectedException ex) {
+            log.warn("verification_mail_rejected userId={} errorType={}", userId, ex.getClass().getSimpleName());
+        }
+    }
+
+    private void deliver(UUID userId, String email, String tokenValue) {
         try {
             mailSender.send(email, tokenValue);
         } catch (RuntimeException ex) {
-            log.warn("verification_mail_failed errorType={}", ex.getClass().getSimpleName());
+            log.warn("verification_mail_failed userId={} errorType={}", userId, ex.getClass().getSimpleName());
         }
     }
 }
