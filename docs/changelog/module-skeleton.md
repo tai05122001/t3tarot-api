@@ -9,13 +9,13 @@ Tách code thành 8 module Spring Modulith (`identity`, `content`, `reading`, `i
 ## Thay đổi gì
 
 - Mỗi module có `package-info.java` với `@ApplicationModule(allowedDependencies = {...})`.
-- Mỗi module có bốn package nội bộ `web`, `usecase`, `domain`, `infra`, mỗi package một `package-info.java`.
+- Mỗi module chỉ có package gốc và `package-info.java` (khai báo `@ApplicationModule` và các phụ thuộc cho phép); thư mục feature được tạo khi module có tính năng đầu tiên, theo `.claude/skills/project-structure/references/structure.md`. Module `identity` đã có feature (xem `identity-authentication`).
 - Phụ thuộc cho phép: `identity`, `content`, `safety` → `audit`, `common`; `reading` → `content`, `audit`, `common`; `interpretation`, `followup` → `reading`, `content`, `audit`, `common`; `privacy` → `reading`, `followup`, `audit`, `common`; `audit` → `common`.
 - Chưa có `<Module>Api` (interface công khai) ở package gốc của module nào.
 
 ## Vì sao
 
-Chốt ranh giới trước khi viết nghiệp vụ để `ModularityTests` chặn phụ thuộc sai ngay từ đầu. Bản đồ module lấy từ `skills/agent-skills/new-module/references/architecture.md`.
+Chốt ranh giới trước khi viết nghiệp vụ để `ModularityTests` chặn phụ thuộc sai ngay từ đầu. Bản đồ module lấy từ `.claude/skills/new-module/references/architecture.md`.
 
 ## Ảnh hưởng
 
@@ -41,10 +41,9 @@ Chưa chạy `mvn clean verify`: môi trường làm việc không tải đượ
 ## File chính
 
 - `src/main/java/vn/t3tarot/api/<module>/package-info.java`
-- `src/main/java/vn/t3tarot/api/<module>/{web,usecase,domain,infra}/package-info.java`
 - `src/test/java/vn/t3tarot/api/ModularityTests.java`
 
 ## Liên quan
 
-- `skills/agent-skills/new-module/references/architecture.md`
-- [api-error-and-pagination](api-error-and-pagination.md): mã lỗi riêng của module đặt ở `<Module>/domain`.
+- `.claude/skills/new-module/references/architecture.md`
+- [api-error-and-pagination](api-error-and-pagination.md): mã lỗi riêng của module đặt ở `<Module>/shared/enumeration`.

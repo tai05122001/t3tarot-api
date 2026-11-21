@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import vn.t3tarot.api.common.error.ApiException;
-import vn.t3tarot.api.common.error.CommonErrorCode;
+import vn.t3tarot.api.common.constant.CommonErrorCode;
 
 public record IdempotencyKey(UUID value) {
 

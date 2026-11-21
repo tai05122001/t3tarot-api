@@ -30,15 +30,14 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import vn.t3tarot.api.common.constant.CommonErrorCode;
+import vn.t3tarot.api.common.constant.ErrorCode;
+import vn.t3tarot.api.common.constant.ErrorResponseKeys;
+import vn.t3tarot.api.common.constant.ViolationCodes;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-
-    public static final String CODE_PROPERTY = "code";
-    public static final String REQUEST_ID_PROPERTY = "requestId";
-    public static final String ERRORS_PROPERTY = "errors";
-    public static final String REQUEST_ID_MDC_KEY = "requestId";
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<Object> handleApiException(ApiException ex) {
@@ -127,7 +126,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleExceptionInternal(
             Exception ex, Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
         ProblemDetail problemDetail = body instanceof ProblemDetail detail ? detail : ProblemDetail.forStatus(statusCode);
-        if (problemDetail.getProperties() == null || !problemDetail.getProperties().containsKey(CODE_PROPERTY)) {
+        if (problemDetail.getProperties() == null
+                || !problemDetail.getProperties().containsKey(ErrorResponseKeys.CODE_PROPERTY)) {
             enrich(problemDetail, CommonErrorCode.fromStatus(statusCode), List.of());
         }
         return super.handleExceptionInternal(ex, problemDetail, headers, statusCode, request);
@@ -142,13 +142,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static void enrich(ProblemDetail body, ErrorCode errorCode, List<FieldViolation> violations) {
         body.setTitle("");
         body.setDetail(null);
-        body.setProperty(CODE_PROPERTY, errorCode.code());
-        String requestId = MDC.get(REQUEST_ID_MDC_KEY);
+        body.setProperty(ErrorResponseKeys.CODE_PROPERTY, errorCode.code());
+        String requestId = MDC.get(ErrorResponseKeys.REQUEST_ID_MDC_KEY);
         if (requestId != null) {
-            body.setProperty(REQUEST_ID_PROPERTY, requestId);
+            body.setProperty(ErrorResponseKeys.REQUEST_ID_PROPERTY, requestId);
         }
         if (!violations.isEmpty()) {
-            body.setProperty(ERRORS_PROPERTY, violations);
+            body.setProperty(ErrorResponseKeys.ERRORS_PROPERTY, violations);
         }
     }
 

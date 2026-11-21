@@ -27,9 +27,11 @@ HELP.md
 out/
 bin/
 
-# Claude Code (skills are sourced from skills/ and copied locally)
-.claude/skills/
+# Claude Code: commit CLAUDE.md, .claude/ and .mcp.json; ignore personal and generated files
+CLAUDE.local.md
 .claude/settings.local.json
+.claude/worktrees/
+Claude outputs/
 
 # Code quality
 .scannerwork/

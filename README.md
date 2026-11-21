@@ -118,10 +118,7 @@ t3tarot-api/
 ├── docker/postgres/          Dockerfile và postgresql.conf của image PostgreSQL dev
 ├── docs/                     tài liệu gốc: tổng quan, đặc tả MVP, feature cốt lõi, ERD
 │   └── changelog/            changelog theo feature, sửa đè khi feature đổi
-├── skills/
-│   ├── README.md             danh sách skill và cách cài
-│   ├── agent-skills/         skill làm một việc (SQL đường nóng, migration, review...)
-│   └── agent-workflows/      workflow nhiều bước (tạo endpoint, sửa endpoint)
+├── .claude/                  cấu hình AI cho Claude Code (agents, commands, skills, workflows, rules, policies...)
 └── src/
     ├── main/java/vn/t3tarot/api/
     │   ├── common/           code dùng chung, không chứa nghiệp vụ
@@ -139,23 +136,12 @@ Module dự kiến: `identity`, `content`, `reading`, `interpretation`, `followu
 - Không viết comment trong code; tên và cấu trúc phải tự giải thích. Code phải sạch SonarQube.
 - Tiền dùng `long` (VND) hoặc `BigDecimal`, không dùng `float`/`double`.
 - Ngày giờ chỉ lấy qua `VietnamClock`.
-- Chuẩn đặt tên, từ điển thuật ngữ, quy tắc branch và commit: `skills/agent-skills/project-structure/references/naming.md`.
-- Vị trí file mới: `skills/agent-skills/project-structure/references/structure.md`.
+- Chuẩn đặt tên, từ điển thuật ngữ, quy tắc branch và commit: `.claude/skills/project-structure/references/naming.md`.
+- Vị trí file mới: `.claude/skills/project-structure/references/structure.md`.
 
 ## Dùng với Claude Code
 
-`CLAUDE.md` chứa quy tắc chung; quy tắc chi tiết nằm trong `references/` của từng skill. Claude Code đọc skill ở `.claude/skills/`, nên sau khi clone cần sao chép (thư mục này không được commit):
-
-```bash
-# macOS, Linux
-mkdir -p .claude/skills && cp -r skills/agent-skills/* skills/agent-workflows/* .claude/skills/
-
-# Windows
-xcopy skills\agent-skills .claude\skills /E /I /Y
-xcopy skills\agent-workflows .claude\skills /E /I /Y
-```
-
-Danh sách skill: `skills/README.md`.
+`CLAUDE.md` chứa quy tắc chung; phần còn lại nằm trong `.claude/` và được commit, Claude Code đọc trực tiếp sau khi clone, không cần sao chép. Bản đồ thư mục và danh sách skill: `.claude/README.md`.
 
 ## Giấy phép
 

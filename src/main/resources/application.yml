@@ -12,6 +12,13 @@ spring:
     password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: ${DB_POOL_SIZE:10}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: ${REDIS_TIMEOUT:100ms}
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT:200ms}
   jpa:
     open-in-view: false
     hibernate:
@@ -47,6 +54,30 @@ t3tarot:
       audience: ${JWT_AUDIENCE}
       public-key: ${JWT_PUBLIC_KEY}
     swagger-public: ${SWAGGER_ENABLED:false}
+    public-paths:
+      - /auth/register
+      - /auth/login
+      - /auth/social/google
+      - /auth/refresh
+      - /auth/logout
+      - /auth/email/verify
+      - /auth/email/resend
+    rate-limit:
+      enabled: ${RATE_LIMIT_ENABLED:true}
+      public-limit:
+        max-requests: ${RATE_LIMIT_PUBLIC_MAX_REQUESTS:10}
+        window-seconds: ${RATE_LIMIT_PUBLIC_WINDOW_SECONDS:60}
+      authenticated-limit:
+        max-requests: ${RATE_LIMIT_AUTHENTICATED_MAX_REQUESTS:120}
+        window-seconds: ${RATE_LIMIT_AUTHENTICATED_WINDOW_SECONDS:60}
+  identity:
+    private-key: ${JWT_PRIVATE_KEY}
+    key-id: ${JWT_KEY_ID:t3tarot-1}
+    access-token-ttl: ${JWT_ACCESS_TTL:15m}
+    refresh-token-ttl: ${JWT_REFRESH_TTL:30d}
+    refresh-grace: ${AUTH_REFRESH_GRACE:10s}
+    google:
+      client-ids: ${GOOGLE_CLIENT_IDS:}
 
 management:
   server:

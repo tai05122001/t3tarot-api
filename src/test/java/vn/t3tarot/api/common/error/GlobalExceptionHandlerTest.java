@@ -34,6 +34,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import vn.t3tarot.api.common.constant.CommonErrorCode;
+import vn.t3tarot.api.common.constant.ErrorCode;
+import vn.t3tarot.api.common.constant.ErrorResponseKeys;
 
 class GlobalExceptionHandlerTest {
 
@@ -47,7 +50,7 @@ class GlobalExceptionHandlerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(new StubController())
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
-        MDC.put(GlobalExceptionHandler.REQUEST_ID_MDC_KEY, REQUEST_ID);
+        MDC.put(ErrorResponseKeys.REQUEST_ID_MDC_KEY, REQUEST_ID);
     }
 
     @AfterEach

@@ -8,9 +8,9 @@ Quy ước chung cho mọi endpoint: thành công trả thẳng body (không env
 
 ## Thay đổi gì
 
-- `common/error`:
-  - `ErrorCode` (interface: `code()`, `httpStatus()`); mỗi module có `<Module>ErrorCode` riêng trong `domain`, `common` chỉ có `CommonErrorCode`.
-  - `CommonErrorCode` (mã dạng `error.<nhóm>.<lý do>`, đúng 3 đoạn, snake_case):
+- `common/error` (xử lý lỗi: `ApiException`, `FieldViolation`, `ErrorCodeFormat`, `GlobalExceptionHandler`) và `common/constant` (hằng: `ErrorCode`, `CommonErrorCode`, `ViolationCodes`, `ErrorResponseKeys` chứa tên property `code`, `requestId`, `errors` và khoá MDC):
+  - `constant/ErrorCode` (interface: `code()`, `httpStatus()`); mỗi module có `<Module>ErrorCode` riêng trong `shared/enumeration` của module, `common` chỉ có `CommonErrorCode`.
+  - `constant/CommonErrorCode` (mã dạng `error.<nhóm>.<lý do>`, đúng 3 đoạn, snake_case):
 
     | Hằng | Mã | HTTP |
     | --- | --- | --- |
@@ -86,7 +86,7 @@ Rủi ro cần kiểm trên máy dev:
 
 ## File chính
 
-- `src/main/java/vn/t3tarot/api/common/error/`
+- `src/main/java/vn/t3tarot/api/common/error/`, `.../common/constant/`
 - `src/main/java/vn/t3tarot/api/common/web/{PageQuery,PageResponse}.java`
 - `src/main/java/vn/t3tarot/api/common/idempotency/IdempotencyKey.java`
 

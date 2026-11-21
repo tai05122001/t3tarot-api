@@ -20,6 +20,7 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import vn.t3tarot.api.common.security.jwt.AccessTokenAuthenticationConverter;
 
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
