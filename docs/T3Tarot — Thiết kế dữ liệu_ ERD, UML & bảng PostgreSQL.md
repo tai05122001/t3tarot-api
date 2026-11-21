@@ -1,6 +1,8 @@
 # T3Tarot — Thiết kế dữ liệu: ERD, UML & bảng PostgreSQL
 
-18/11/2026 · Dựa trên [Đặc tả feature MVP](https://claude.ai/artifact/Ev1s6Qymx3CSQgQWh3U2cw) (F1–F8, D1–D22) và [Tổng quan dự án](https://claude.ai/artifact/WAgZeCKsCJ9BtW5oaMr8kq).
+18/11/2026 (cập nhật 21/11/2026) · Dựa trên [Đặc tả feature MVP](https://claude.ai/artifact/Ev1s6Qymx3CSQgQWh3U2cw) (F1–F8, D1–D23) và [Tổng quan dự án](https://claude.ai/artifact/WAgZeCKsCJ9BtW5oaMr8kq).
+
+**Cập nhật 21/11/2026, nhóm Tài khoản:** theo quyết định đăng nhập trước mắt (username + mật khẩu, Google, Facebook; OTP hoãn) và phân quyền USER / ADMIN (D23). Thêm cột `app_user.role`, bảng `password_credential` và `email_verification`, hai cột xoay refresh token ở `auth_session`; `otp_challenge` tạm hoãn. DDL nhóm này khớp migration Flyway `V1`–`V3`.
 
 Theo spec đã chốt trong doc Đề xuất thiết kế của Claude, chưa chốt Giả định cần PO / legal / đối tác xác nhận
 
@@ -22,7 +24,7 @@ Toàn bộ schema là Đề xuất; các ràng buộc lấy thẳng từ spec đ
 
 | Mục | Quy ước |
 | --- | --- |
-| DB | PostgreSQL 16. DDL ở mục 9 đã chạy thử trên PG 16. |
+| DB | PostgreSQL 16. DDL ở mục 9 đã chạy thử trên PG 16; `docker-compose` và test tích hợp (Testcontainers) dùng PG 17. Schema do Flyway quản lý ở `src/main/resources/db/migration`. |
 | Khoá chính | `uuid` cho thực thể nghiệp vụ (sinh UUIDv7 ở app để index theo thời gian); `bigint identity` cho bảng log; `smallint` cho `card`. |
 | Enum | `varchar + CHECK` thay cho `CREATE TYPE … AS ENUM`: thêm/bớt giá trị chỉ cần sửa constraint. Đánh đổi: DB không có kiểu riêng, map bằng Java enum. |
 | Thời gian | `timestamptz` cho mốc thời điểm. `draw_date`, `week_start` là `date` theo `Asia/Ho_Chi_Minh`, cut-off 00:00, tính ở server. Không dùng giờ thiết bị. |
@@ -31,18 +33,20 @@ Toàn bộ schema là Đề xuất; các ràng buộc lấy thẳng từ spec đ
 | Chi phí LLM | `bigint` đơn vị micro (1 USD = 1.000.000), không `float`. Giả định nhà cung cấp LLM tính tiền bằng USD. |
 | Log ứng dụng | Không ghi câu hỏi / luận giải ra log hay Kibana (F7). `audit_log.details` cũng không chứa text người dùng. |
 
-## 2Bản đồ 20 bảng MVP
+## 2Bản đồ 21 bảng MVP
 
 | Nhóm · feature | Bảng (bấm để xem chi tiết) |
 | --- | --- |
-| **Tài khoản** F8 | [app_user](#t-app-user)[user_identity](#t-user-identity)[otp_challenge](#t-otp-challenge)[auth_session](#t-auth-session) |
+| **Tài khoản** F8 | [app_user](#t-app-user)[user_identity](#t-user-identity)[password_credential](#t-password-credential)[auth_session](#t-auth-session)[email_verification](#t-email-verification) |
 | **Bộ bài & Card KB** F3, F4 | [card](#t-card)[deck](#t-deck)[card_image](#t-card-image)[content_version](#t-content-version)[card_meaning](#t-card-meaning) |
 | **Lượt xem & hỏi tiếp** F1, F2, F5, F6 | [reading](#t-reading)[reading_shuffle](#t-reading-shuffle)[reading_card](#t-reading-card)[reading_content](#t-reading-content)[followup](#t-followup)[followup_content](#t-followup-content)[spread_quota](#t-spread-quota) |
 | **Vận hành, an toàn, audit** F5, F7, F8 | [llm_call](#t-llm-call)[safety_event](#t-safety-event)[product_event](#t-product-event)[audit_log](#t-audit-log) |
 
+Tạm hoãn: [otp_challenge](#t-otp-challenge) (OTP / magic link) chưa có migration và không tính vào 21 bảng; giữ thiết kế ở mục 4 và 9 để làm lại khi bật OTP.
+
 ## 3ERD MVP
 
-ERD MVP · 20 bảng. Chỉ hiện cột khoá và cột quan trọng; đủ cột ở mục 4 và DDL.
+ERD MVP · 21 bảng. Chỉ hiện cột khoá và cột quan trọng; đủ cột ở mục 4 và DDL. Sơ đồ hình chưa vẽ lại nhóm Tài khoản; nguồn đúng là mục 4 và DDL.
 
 ## 4Từ điển bảng
 
@@ -50,7 +54,7 @@ Cột lấy trực tiếp từ DDL. Mở từng bảng để xem ràng buộc, i
 
 ### Tài khoản · F8
 
-`app_user`Hồ sơ người dùng và 2 cài đặt nghiệp vụ: chế độ lá ngược, số ngày giữ câu hỏi.
+`app_user`Hồ sơ người dùng, 2 cài đặt nghiệp vụ (chế độ lá ngược, số ngày giữ câu hỏi) và vai trò.
 
 | Cột | Kiểu | Ràng buộc / mặc định |
 | --- | --- | --- |
@@ -62,14 +66,16 @@ Cột lấy trực tiếp từ DDL. Mở từng bảng để xem ràng buộc, i
 | `created_at` | `timestamptz` | NOT NULL DEFAULT now() |
 | `updated_at` | `timestamptz` | NOT NULL DEFAULT now() |
 | `deleted_at` | `timestamptz` |  |
+| `role` | `varchar(16)` | NOT NULL DEFAULT 'USER' CHECK (role IN ('USER', 'ADMIN')) |
 
 Vì sao thiết kế vậy
 
 - reversal_mode mặc định BLOCKED (D13). Giữ sẵn OPPOSITE trong CHECK, API từ chối ở MVP.
 - question_retention_days CHECK 7..30 ở DB + validate ở API (spec: không tin client).
 - Đổi 2 cài đặt này chỉ ảnh hưởng reading mới, vì reading đã snapshot.
+- role (D23, 21/11/2026): một người một vai trò, USER là mặc định cho mọi tài khoản (kể cả tài khoản có trước khi thêm cột). ADMIN do quản trị gán thủ công bằng SQL; chưa có API nâng quyền. Role đi vào claim `roles` của access token nên đổi role có hiệu lực khi cấp token mới: tối đa 15 phút, hoặc ngay lúc refresh. Cần nhiều vai trò cho một người thì chuyển sang bảng `user_role` (xem mục 11).
 
-`user_identity`Mỗi cách đăng nhập là 1 dòng (Google, Facebook, Email, SĐT).
+`user_identity`Mỗi cách đăng nhập là 1 dòng. Đang dùng: `EMAIL` (tài khoản username + mật khẩu) và `GOOGLE`; `FACEBOOK` làm sau Google; `PHONE` chỉ giữ chỗ, chờ bật OTP SMS.
 
 | Cột | Kiểu | Ràng buộc / mặc định |
 | --- | --- | --- |
@@ -92,10 +98,12 @@ Ràng buộc & index
 Vì sao thiết kế vậy
 
 - UNIQUE (provider, provider_subject): Google sub, Facebook id, email đã normalize, SĐT E.164.
+- Tài khoản mật khẩu: `provider = 'EMAIL'`, `provider_subject` và `email_normalized` đều là email đã normalize. `verified_at` chỉ được đặt khi người dùng xác minh email (bảng `email_verification`); chưa xác minh thì không đăng nhập được bằng mật khẩu.
+- Google: chỉ nhận ID token có `email_verified`, nên identity mới tạo đã có `verified_at` ngay lúc tạo.
 - Tách bảng nên quyết định liên kết tài khoản (còn mở) không đổi schema: gộp = nhiều identity trỏ 1 user.
 - PII: email/SĐT. Nên mã hoá cột hoặc ít nhất mã hoá ổ đĩa + giới hạn quyền đọc.
 
-`otp_challenge`OTP / magic link đã gửi; cũng là nguồn đếm để rate limit gửi OTP.
+`otp_challenge`**Tạm hoãn (18/11/2026), chưa có migration.** OTP / magic link đã gửi; cũng là nguồn đếm để rate limit gửi OTP.
 
 | Cột | Kiểu | Ràng buộc / mặc định |
 | --- | --- | --- |
@@ -123,6 +131,26 @@ Vì sao thiết kế vậy
 - Verify: UPDATE attempt_count + 1 WHERE chưa dùng, chưa hết hạn, còn lượt thử → rồi so hash constant-time.
 - Rate limit đếm theo (destination_hash, created_at) và (request_ip, created_at). max_attempts = 5 là giả định.
 
+`password_credential`Tên đăng nhập và mật khẩu đã băm của tài khoản đăng ký bằng username + mật khẩu (chốt trước mắt 18/11/2026).
+
+| Cột | Kiểu | Ràng buộc / mặc định |
+| --- | --- | --- |
+| `user_id` | `uuid` | PRIMARY KEY REFERENCES app_user (id) |
+| `username` | `varchar(32)` | NOT NULL |
+| `username_normalized` | `varchar(32)` | NOT NULL UNIQUE |
+| `password_hash` | `varchar(255)` | NOT NULL |
+| `failed_login_count` | `smallint` | NOT NULL DEFAULT 0 CHECK (failed_login_count >= 0) |
+| `locked_until` | `timestamptz` |  |
+| `created_at` | `timestamptz` | NOT NULL DEFAULT now() |
+| `updated_at` | `timestamptz` | NOT NULL DEFAULT now() |
+
+Vì sao thiết kế vậy
+
+- `user_id` là khoá chính: mỗi người một cặp username + mật khẩu. Email nằm ở `user_identity` (provider `EMAIL`), không lặp ở đây.
+- `username_normalized` UNIQUE: trùng tên không phân biệt hoa thường bị chặn bằng ràng buộc, không bằng đọc rồi ghi.
+- Chỉ lưu hash BCrypt (độ mạnh mặc định 12). BCrypt chỉ xét 72 byte đầu nên mật khẩu dài hơn 72 byte bị từ chối.
+- `failed_login_count` và `locked_until` phục vụ khoá tạm thời khi sai mật khẩu nhiều lần; đăng nhập đúng thì đếm về 0.
+
 `auth_session`Refresh token (chỉ lưu hash) để thu hồi phiên.
 
 | Cột | Kiểu | Ràng buộc / mặc định |
@@ -136,15 +164,43 @@ Vì sao thiết kế vậy
 | `created_at` | `timestamptz` | NOT NULL DEFAULT now() |
 | `expires_at` | `timestamptz` | NOT NULL |
 | `revoked_at` | `timestamptz` |  |
+| `previous_refresh_token_hash` | `bytea` |  |
+| `rotated_at` | `timestamptz` |  |
 
 Ràng buộc & index
 
 - ix_auth_session_user (user_id) WHERE revoked_at IS NULL
+- ux_auth_session_previous_hash UNIQUE (previous_refresh_token_hash) WHERE previous_refresh_token_hash IS NOT NULL
 
 Vì sao thiết kế vậy
 
 - Chỉ lưu hash của refresh token; rotate mỗi lần refresh, revoke khi logout / đổi thiết bị.
+- Xoay token bằng một câu `UPDATE … WHERE` (compare-and-set): hash cũ chuyển sang `previous_refresh_token_hash`, `rotated_at` ghi lần xoay đầu tiên.
+- Dùng lại token cũ trong cửa sổ ân hạn (mặc định 10 giây tính từ lần xoay đầu) thì cấp cặp mới, vì app mất mạng sẽ gửi lại cùng một token. Quá cửa sổ thì thu hồi cả phiên.
+- Phiên hết hạn tuyệt đối 30 ngày kể từ lúc đăng nhập; refresh không kéo dài thêm.
+- Access token là JWT RS256 sống 15 phút, không lưu ở DB; claim `roles` lấy từ `app_user.role` mỗi lần cấp token (đăng nhập và refresh).
 - Có thể thay bằng session store khác nếu team đã có chuẩn SSO; bảng này là đề xuất.
+
+`email_verification`Token xác minh email của tài khoản đăng ký bằng mật khẩu.
+
+| Cột | Kiểu | Ràng buộc / mặc định |
+| --- | --- | --- |
+| `id` | `uuid` | PRIMARY KEY |
+| `user_id` | `uuid` | NOT NULL REFERENCES app_user (id) |
+| `identity_id` | `uuid` | NOT NULL REFERENCES user_identity (id) |
+| `token_hash` | `bytea` | NOT NULL UNIQUE |
+| `created_at` | `timestamptz` | NOT NULL DEFAULT now() |
+| `expires_at` | `timestamptz` | NOT NULL |
+| `consumed_at` | `timestamptz` |  |
+
+Ràng buộc & index
+
+- ix_email_verification_identity (identity_id, created_at)
+
+Vì sao thiết kế vậy
+
+- Token 32 byte ngẫu nhiên, chỉ lưu hash; hạn 24 giờ; dùng một lần (`consumed_at`). Dùng token bằng một câu `UPDATE … WHERE consumed_at IS NULL AND expires_at > :now`, đồng thời đặt `user_identity.verified_at`.
+- Gửi lại tối đa một lần mỗi 60 giây: câu INSERT chỉ chạy khi chưa có dòng nào của cùng `identity_id` tạo trong 60 giây gần nhất, nên index `(identity_id, created_at)` phục vụ đúng phép kiểm này.
 
 ### Bộ bài & Card KB · F3, F4
 
@@ -664,7 +720,7 @@ FROM due WHERE r.id = due.id;
 
 ## 9DDL PostgreSQL
 
-20 bảng + trigger append-only. Chưa có migration tool (Flyway/Liquibase): tách file theo nhóm khi đưa vào repo.
+21 bảng + trigger append-only (không tính `otp_challenge` đang tạm hoãn). Đã dùng Flyway: nhóm Tài khoản nằm ở `V1` (4 bảng), `V2` (xoay refresh token và `email_verification`), `V3` (`app_user.role`); các nhóm còn lại chưa có migration, tách file theo nhóm khi đưa vào repo. Trong đoạn dưới, nhóm Tài khoản được gộp thành một `CREATE TABLE` cho mỗi bảng.
 
 ```
 CREATE TABLE app_user (
@@ -678,7 +734,9 @@ CREATE TABLE app_user (
                             CHECK (status IN ('ACTIVE', 'LOCKED', 'DELETED')),
     created_at              timestamptz  NOT NULL DEFAULT now(),
     updated_at              timestamptz  NOT NULL DEFAULT now(),
-    deleted_at              timestamptz
+    deleted_at              timestamptz,
+    role                    varchar(16)  NOT NULL DEFAULT 'USER'
+                            CHECK (role IN ('USER', 'ADMIN'))
 );
 
 CREATE TABLE user_identity (
@@ -697,6 +755,18 @@ CREATE TABLE user_identity (
 CREATE INDEX ix_user_identity_user  ON user_identity (user_id);
 CREATE INDEX ix_user_identity_email ON user_identity (email_normalized) WHERE email_normalized IS NOT NULL;
 
+CREATE TABLE password_credential (
+    user_id             uuid         PRIMARY KEY REFERENCES app_user (id),
+    username            varchar(32)  NOT NULL,
+    username_normalized varchar(32)  NOT NULL UNIQUE,
+    password_hash       varchar(255) NOT NULL,
+    failed_login_count  smallint     NOT NULL DEFAULT 0 CHECK (failed_login_count >= 0),
+    locked_until        timestamptz,
+    created_at          timestamptz  NOT NULL DEFAULT now(),
+    updated_at          timestamptz  NOT NULL DEFAULT now()
+);
+
+-- Tạm hoãn (18/11/2026): chưa có trong migration, giữ thiết kế để làm lại khi bật OTP.
 CREATE TABLE otp_challenge (
     id               uuid        PRIMARY KEY,
     channel          varchar(8)  NOT NULL CHECK (channel IN ('EMAIL', 'SMS')),
@@ -723,9 +793,24 @@ CREATE TABLE auth_session (
     ip                 inet,
     created_at         timestamptz  NOT NULL DEFAULT now(),
     expires_at         timestamptz  NOT NULL,
-    revoked_at         timestamptz
+    revoked_at         timestamptz,
+    previous_refresh_token_hash bytea,
+    rotated_at         timestamptz
 );
 CREATE INDEX ix_auth_session_user ON auth_session (user_id) WHERE revoked_at IS NULL;
+CREATE UNIQUE INDEX ux_auth_session_previous_hash
+    ON auth_session (previous_refresh_token_hash) WHERE previous_refresh_token_hash IS NOT NULL;
+
+CREATE TABLE email_verification (
+    id          uuid        PRIMARY KEY,
+    user_id     uuid        NOT NULL REFERENCES app_user (id),
+    identity_id uuid        NOT NULL REFERENCES user_identity (id),
+    token_hash  bytea       NOT NULL UNIQUE,
+    created_at  timestamptz NOT NULL DEFAULT now(),
+    expires_at  timestamptz NOT NULL,
+    consumed_at timestamptz
+);
+CREATE INDEX ix_email_verification_identity ON email_verification (identity_id, created_at);
 
 CREATE TABLE deck (
     id           varchar(32) PRIMARY KEY,
@@ -992,7 +1077,9 @@ Phác thảo sau MVP · chưa chốt, không có DDL.
 | --- | --- | --- |
 | D6: N lượt/tuần | Giá trị `:n` trong câu lệnh quota. Nếu N đổi giữa tuần, user đã dùng quá N mới vẫn giữ lịch sử. | Đọc N từ config, không lưu trong bảng. |
 | Tuần lịch hay 7 ngày cuốn chiếu | Quyết định có dùng được `spread_quota` hay không. | Thiết kế cho tuần lịch. |
-| Gộp tài khoản cùng email | Khi gộp 2 user cùng có daily hôm nay → giữ lá nào; quota tuần cộng hay lấy max. | `user_identity` tách riêng, hỗ trợ cả 2 cách. |
+| Gộp tài khoản cùng email | Khi gộp 2 user cùng có daily hôm nay → giữ lá nào; quota tuần cộng hay lấy max. | `user_identity` tách riêng, hỗ trợ cả 2 cách. Code hiện tại không tự gộp: Google trùng email với tài khoản mật khẩu thì trả `error.auth.email_already_registered` (409). |
+| Apple Sign-In | Thêm `APPLE` vào CHECK của `user_identity.provider` nếu làm. Có thể bắt buộc trên iOS, chưa kiểm quy định App Store. | Chưa có; chưa quyết. |
+| Một người nhiều vai trò | Chuyển `app_user.role` sang bảng `user_role (user_id, role)`. | Một cột `role`, USER / ADMIN (D23). |
 | "Xoá ngay" daily hôm nay rồi mở lại | Hiện lá trơn, hay cho sinh lại luận giải (cần cho phép `COMPLETED → INTERPRETING` khi content đã xoá). | Hiện tại: lá trơn, không sinh lại. |
 | Crisis ở câu hỏi tiếp | Reading có chuyển `STOPPED_CRISIS` không. | Followup `FAILED / CRISIS` + hoàn lượt. |
 | Chế độ Đối lập (sau MVP) | Cần đoạn nghĩa ngược khác cho 78 × 6 = 468 đoạn. | Thêm cột `reversed_style` vào `card_meaning`. |
@@ -1410,7 +1497,7 @@ Liên quan: [Compare-and-set](#g-compare-and-set)
 
 Mã hoặc đường link đăng nhập gửi qua email/SMS, hết hạn nhanh, dùng 1 lần.
 
-Chỉ lưu hash; giới hạn số lần thử. Bảng `otp_challenge`.
+Chỉ lưu hash; giới hạn số lần thử. Bảng `otp_challenge` (tạm hoãn, chưa làm).
 
 Liên quan: [Rate limit](#g-rate-limit) · [HMAC / hash](#g-hmac)
 

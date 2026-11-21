@@ -40,7 +40,8 @@ import vn.t3tarot.api.identity.sociallogin.client.GoogleIdTokenVerifier;
             "t3tarot.identity.password-hash-strength=4",
             "t3tarot.identity.google.client-ids=" + GoogleTokenFactory.CLIENT_ID,
             "t3tarot.security.rate-limit.enabled=false",
-            "t3tarot.verification-mail.enabled=false"
+            "t3tarot.verification-mail.enabled=false",
+            "t3tarot.verification-mail.async.enabled=false"
         })
 @Import({TestcontainersConfiguration.class, IdentityIntegrationTest.TestBeans.class})
 public abstract class IdentityIntegrationTest {
@@ -94,6 +95,7 @@ public abstract class IdentityIntegrationTest {
                 .apply(springSecurity())
                 .build();
         mailSender.failWhileSending(false);
+        mailSender.releaseSending();
     }
 
     public record Account(String username, String email, String password) {
