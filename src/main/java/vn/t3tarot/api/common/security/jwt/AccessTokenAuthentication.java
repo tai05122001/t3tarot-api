@@ -1,10 +1,11 @@
 package vn.t3tarot.api.common.security.jwt;
 
 import java.io.Serial;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import vn.t3tarot.api.common.constant.AccessTokenClaims;
 import vn.t3tarot.api.common.security.AuthenticatedUser;
@@ -17,8 +18,9 @@ public class AccessTokenAuthentication extends AbstractAuthenticationToken {
     private final Jwt jwt;
     private final AuthenticatedUser principal;
 
-    public AccessTokenAuthentication(Jwt jwt, AuthenticatedUser principal) {
-        super(List.of());
+    public AccessTokenAuthentication(
+            Jwt jwt, AuthenticatedUser principal, Collection<? extends GrantedAuthority> authorities) {
+        super(authorities);
         this.jwt = jwt;
         this.principal = principal;
         setAuthenticated(true);

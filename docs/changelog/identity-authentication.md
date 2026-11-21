@@ -1,6 +1,6 @@
 # Đăng ký, đăng nhập và token
 
-Cập nhật lần cuối: 2026-11-19 · Trạng thái: Đang phát triển
+Cập nhật lần cuối: 2026-11-21 · Trạng thái: Đang phát triển
 
 ## Tóm tắt
 
@@ -31,7 +31,8 @@ Module `identity` cấp JWT riêng cho website và mobile: đăng ký bằng use
 - Google: xác minh chữ ký qua JWKS của Google (timeout 2 giây kết nối, 3 giây đọc), kiểm `iss`, `aud` (danh sách `GOOGLE_CLIENT_IDS`), `exp`, `email_verified`. Không tự gộp với tài khoản mật khẩu cùng email: trả `email_already_registered`. JWKS không tới được: `503 error.server.unavailable`.
 - Xác minh email: token 32 byte, chỉ lưu hash, hạn 24 giờ, dùng một lần; gửi lại tối đa một lần mỗi 60 giây. Gửi mail qua `VerificationMailSender` (`emailverification/client`); bản cài đặt hiện chỉ ghi log và không gửi.
 - Email trùng khi đăng ký trả `201` như bình thường và không tạo gì, để không lộ email đã có tài khoản.
-- `common`: `RsaPrivateKeys`, `UuidV7Generator`, `AccessTokenClaims.SESSION_ID`, `AccessTokenAuthentication.sessionId()` và `user()`.
+- `common`: `RsaPrivateKeys`, `PemKeySource`, `UuidV7Generator`, `AccessTokenClaims.SESSION_ID`, `AccessTokenAuthentication.sessionId()` và `user()`.
+- Log để truy vết (SLF4J, `requestId` có sẵn trong MDC): `common/web/AccessLoggingFilter` ghi `METHOD path status thời-gian` cho mọi request (không ghi query, header, body); mỗi `Facade` ghi một dòng `info` khi thành công, ví dụ `register userId=...`, `session.revoke userId=... sessionId=...`, `login.google isNewUser=...`. Không log email, username, mật khẩu, token. Mẫu log console đổi sang `logging.pattern.console` có giờ, `requestId`, tên logger.
 
 ## Vì sao
 
@@ -44,7 +45,7 @@ Module `identity` cấp JWT riêng cho website và mobile: đăng ký bằng use
 ## Ảnh hưởng
 
 - API / contract: 10 endpoint mới ở trên; app cũ chưa dùng nên không phá tương thích. Access token vẫn hợp lệ đến hết hạn (15 phút) sau khi thu hồi phiên.
-- Cấu hình / biến môi trường: `JWT_PRIVATE_KEY` (PKCS#8, bắt buộc, phải khớp `JWT_PUBLIC_KEY`, kiểm lúc khởi động), `JWT_KEY_ID`, `JWT_ACCESS_TTL`, `JWT_REFRESH_TTL`, `AUTH_REFRESH_GRACE`, `GOOGLE_CLIENT_IDS`. `t3tarot.security.public-paths` có thêm 7 đường dẫn công khai (đăng ký, đăng nhập, social, refresh, logout, verify, resend) vì người dùng chưa có token khi gọi.
+- Cấu hình / biến môi trường: `JWT_PRIVATE_KEY` (chuỗi khoá) hoặc `JWT_PRIVATE_KEY_LOCATION` (đường dẫn file PEM, ví dụ `file:./secrets/jwt-private.pem`): PKCS#8, bắt buộc đúng một trong hai, phải khớp khoá công khai, kiểm lúc khởi động, `JWT_KEY_ID`, `JWT_ACCESS_TTL`, `JWT_REFRESH_TTL`, `AUTH_REFRESH_GRACE`, `GOOGLE_CLIENT_IDS`. `t3tarot.security.public-paths` có thêm 7 đường dẫn công khai (đăng ký, đăng nhập, social, refresh, logout, verify, resend) vì người dùng chưa có token khi gọi.
 - Database: migration `V2__add_refresh_rotation_and_email_verification.sql` (hai cột trên `auth_session`, bảng `email_verification`). Bảng tài khoản nằm ở `V1`.
 - Client: website và mobile dùng chung hợp đồng; app lưu refresh token ở nơi an toàn, gọi refresh một luồng duy nhất.
 - Tiền, hạn mức, state machine: Không.
@@ -61,7 +62,7 @@ Cấp khóa riêng và khóa công khai trước khi triển khai (cùng cặp),
 
 ## Trạng thái kiểm chứng
 
-`mvn clean verify` (cần Docker): toàn bộ test xanh, gồm `ModularityTests` và test tích hợp Testcontainers PostgreSQL 17 cho từng controller và khóa/xoay token. Coverage dòng của service, controller, client, config và util `common` thuộc task đều ≥ 80% (đo bằng JaCoCo `jacoco.csv`). Chưa chạy: Google thật, hạ tầng Kubernetes.
+`mvn clean verify` (cần Docker): toàn bộ test xanh, gồm `ModularityTests` và test tích hợp Testcontainers PostgreSQL 17 cho từng controller và khóa/xoay token. Coverage dòng của service, controller, client, config và util `common` thuộc task đều ≥ 80% (đo bằng JaCoCo `jacoco.csv`). Chưa chạy: Google thật, hạ tầng Kubernetes. Phần log (`AccessLoggingFilter`, log ở các Facade) chưa có test theo yêu cầu của chủ dự án (2026-11-21), nên chưa đạt ngưỡng coverage 80% cho `AccessLoggingFilter`.
 
 ## File chính
 

@@ -19,8 +19,8 @@ public class SessionConfig {
 
     @Bean
     public JwtEncoder accessTokenJwtEncoder(IdentityProperties properties, SecurityProperties securityProperties) {
-        RSAPublicKey publicKey = RsaPublicKeys.parse(securityProperties.jwt().publicKey());
-        RSAPrivateKey privateKey = RsaPrivateKeys.parse(properties.privateKey());
+        RSAPublicKey publicKey = RsaPublicKeys.parse(securityProperties.jwt().publicKeyPem());
+        RSAPrivateKey privateKey = RsaPrivateKeys.parse(properties.privateKeyPem());
         if (!publicKey.getModulus().equals(privateKey.getModulus())) {
             throw new IllegalStateException("JWT private key does not match JWT public key");
         }

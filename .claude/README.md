@@ -18,15 +18,18 @@ Không commit `settings.local.json` (cấu hình cá nhân).
 
 ## Agent
 
+Agent viết ở level principal và không gắn với dự án: không chứa đường dẫn hay quy định riêng của repo nào, nên chép sang source khác dùng được ngay. Bước 0 của mọi agent là đọc `CLAUDE.md`, `.claude/rules/`, `.claude/policies/` và skill của repo đang làm; quy định của dự án ưu tiên hơn nguyên tắc trong agent. Quy định riêng của repo viết vào `CLAUDE.md`, `rules/` hoặc `skills/`, không viết vào agent.
+
 | Agent | Việc |
 | --- | --- |
-| `software-engineer` | Viết, sửa code nghiệp vụ, endpoint, SQL |
-| `qa-test-engineer` | Viết, chạy test, coverage, tìm ca thiếu |
-| `devops-engineer` | Docker dev, build Maven, cấu hình, biến môi trường |
-| `sre-ops-engineer` | Metric, log, dashboard, PromQL / LogQL |
-| `project-manager` | Chia việc, scope, theo dõi việc còn mở; không code |
+| `software-engineer` | Thiết kế và viết code, chọn phương án có trade-off, tự review |
+| `qa-test-engineer` | Chiến lược test theo rủi ro, ca test, chạy test, bằng chứng chất lượng |
+| `devops-engineer` | Build, container, CI/CD, cấu hình và secret, deploy và rollback |
+| `sre-ops-engineer` | SLI/SLO, metric, log, alert, chịu lỗi, sự cố |
+| `project-manager` | Làm rõ yêu cầu, chia vertical slice, rủi ro, quyết định; không code |
+| `ui-ux-designer` | Luồng người dùng, màn hình, trạng thái UI, accessibility, yêu cầu dữ liệu cho API |
 
-Không có agent UI/UX vì UI nằm ở repo khác.
+Mỗi agent có cùng bộ khung: nạp bối cảnh → nguyên tắc → cách làm → checklist → dừng và hỏi khi → đầu ra → phối hợp.
 
 ## Skill
 
@@ -51,10 +54,10 @@ Mỗi workflow là `workflows/<tên>/WORKFLOW.md` (kèm `references/` nếu cầ
 
 | Workflow | Command | Luồng | Gọi các skill | Điểm dừng chờ xác nhận |
 | --- | --- | --- | --- | --- |
-| `create-endpoint` | `/create-endpoint` | Xác định client (website, app, cả hai) → góp ý yêu cầu → scope và giả định → DTO và OpenAPI → controller → interface công khai → use case → SQL → test → chạy test → tự review → changelog → Session Feature Summary | `new-module`, `client-compatibility`, `hot-path-sql`, `flyway-migration`, `run-tests`, `java-code-review`, `changelog` | Khi chưa rõ client; sau bước scope; trước migration; trước khi thêm dependency; khi hết 3 vòng vẫn đỏ; khi test sai cần sửa test |
-| `modify-endpoint` | `/modify-endpoint` | Xác định endpoint và client đang gọi → phân loại và đánh giá ảnh hưởng → checklist để duyệt → sửa nhỏ nhất, không đụng logic ổn định → test lại theo mức Thấp / Trung / Cao → changelog (sửa đè) → tổng kết | `client-compatibility`, `hot-path-sql`, `flyway-migration`, `run-tests`, `java-code-review`, `changelog` | Sau checklist (luôn dừng); khi cần sửa ngoài checklist; trước migration, đổi contract, phá vỡ app cũ hoặc công thức tiền; khi mốc test đã đỏ; khi hết 3 vòng; khi test sai cần sửa test |
+| `create-endpoint` | `/create-endpoint` | Xác định client (website, app, cả hai) → góp ý yêu cầu → scope và giả định → DTO và OpenAPI → controller → interface công khai → use case → SQL → cập nhật Swagger → test → chạy test → tự review → changelog → thêm vào `docs/api/endpoints.md` → happy case Bruno `bruno/` và curl `curl/` → Session Feature Summary | `new-module`, `client-compatibility`, `hot-path-sql`, `flyway-migration`, `run-tests`, `java-code-review`, `changelog` | Khi chưa rõ client; sau bước scope; trước migration; trước khi thêm dependency; khi hết 3 vòng vẫn đỏ; khi test sai cần sửa test |
+| `modify-endpoint` | `/modify-endpoint` | Xác định endpoint và client đang gọi → phân loại và đánh giá ảnh hưởng → checklist để duyệt → sửa nhỏ nhất, không đụng logic ổn định → test lại theo mức Thấp / Trung / Cao → cập nhật Swagger → changelog (sửa đè) → sửa `docs/api/endpoints.md`, file Bruno và curl → tổng kết | `client-compatibility`, `hot-path-sql`, `flyway-migration`, `run-tests`, `java-code-review`, `changelog` | Sau checklist (luôn dừng); khi cần sửa ngoài checklist; trước migration, đổi contract, phá vỡ app cũ hoặc công thức tiền; khi mốc test đã đỏ; khi hết 3 vòng; khi test sai cần sửa test |
 
-Chi tiết từng bước: `.claude/workflows/modify-endpoint/references/workflow.md`. Điều kiện chạy: cần `mvn` và Docker trên máy chạy. Quy tắc chạy và sửa test: `.claude/rules/testing.md`.
+Chi tiết từng bước: `.claude/workflows/modify-endpoint/references/workflow.md`. Quy ước Swagger cho cả hai workflow: `.claude/references/swagger.md`. Điều kiện chạy: cần `mvn` và Docker trên máy chạy. Quy tắc chạy và sửa test: `.claude/rules/testing.md`.
 
 ## Quy ước viết skill
 

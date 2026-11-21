@@ -1,0 +1,6 @@
+curl -X POST 'http://localhost:8080/auth/email/resend' \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: {{$guid}}' \
+  -d '{
+    "email": "tarot.tester@example.com"
+  }'

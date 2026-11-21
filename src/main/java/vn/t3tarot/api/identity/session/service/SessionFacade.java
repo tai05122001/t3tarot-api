@@ -4,11 +4,13 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.t3tarot.api.identity.session.dto.response.SessionResponse;
 import vn.t3tarot.api.identity.session.dto.response.TokenResponse;
 import vn.t3tarot.api.identity.shared.entity.ClientInfo;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SessionFacade {
@@ -21,19 +23,25 @@ public class SessionFacade {
     private final RevokeSession revokeSession;
 
     public TokenResponse start(UUID userId, UUID identityId, ClientInfo clientInfo, Instant now) {
-        return sessionIssuer.start(userId, identityId, clientInfo, now);
+        TokenResponse response = sessionIssuer.start(userId, identityId, clientInfo, now);
+        log.info("session.start userId={}", userId);
+        return response;
     }
 
     public TokenResponse refresh(String refreshToken) {
-        return refreshSession.execute(refreshToken);
+        TokenResponse response = refreshSession.execute(refreshToken);
+        log.info("session.refresh");
+        return response;
     }
 
     public void logout(String refreshToken) {
         logout.execute(refreshToken);
+        log.info("session.logout");
     }
 
     public void logoutAll(UUID userId) {
         logoutAll.execute(userId);
+        log.info("session.logoutAll userId={}", userId);
     }
 
     public List<SessionResponse> list(UUID userId, UUID currentSessionId) {
@@ -42,5 +50,6 @@ public class SessionFacade {
 
     public void revoke(UUID userId, UUID sessionId) {
         revokeSession.execute(userId, sessionId);
+        log.info("session.revoke userId={} sessionId={}", userId, sessionId);
     }
 }

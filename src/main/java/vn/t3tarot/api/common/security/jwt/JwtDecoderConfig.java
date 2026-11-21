@@ -22,7 +22,7 @@ public class JwtDecoderConfig {
     @Bean
     JwtDecoder jwtDecoder(SecurityProperties properties) {
         SecurityProperties.Jwt jwtProperties = properties.jwt();
-        NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(RsaPublicKeys.parse(jwtProperties.publicKey()))
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(RsaPublicKeys.parse(jwtProperties.publicKeyPem()))
                 .signatureAlgorithm(SignatureAlgorithm.RS256)
                 .build();
         decoder.setJwtValidator(accessTokenValidator(jwtProperties));

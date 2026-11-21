@@ -5,10 +5,12 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import vn.t3tarot.api.common.random.UuidV7Generator;
+import vn.t3tarot.api.common.security.Role;
 import vn.t3tarot.api.identity.session.dto.response.TokenResponse;
 import vn.t3tarot.api.identity.session.repository.AuthSessionHotPathRepository;
 import vn.t3tarot.api.identity.shared.config.IdentityProperties;
 import vn.t3tarot.api.identity.shared.entity.ClientInfo;
+import vn.t3tarot.api.identity.shared.repository.AppUserHotPathRepository;
 import vn.t3tarot.api.identity.shared.service.OpaqueTokens.OpaqueToken;
 import vn.t3tarot.api.identity.shared.service.OpaqueTokens;
 
@@ -22,6 +24,7 @@ class SessionIssuer {
     private final OpaqueTokens opaqueTokens;
     private final AccessTokenIssuer accessTokenIssuer;
     private final AuthSessionHotPathRepository sessions;
+    private final AppUserHotPathRepository users;
     private final IdentityProperties properties;
 
     TokenResponse start(UUID userId, UUID identityId, ClientInfo clientInfo, Instant now) {
@@ -40,8 +43,9 @@ class SessionIssuer {
     }
 
     TokenResponse issue(UUID userId, UUID sessionId, OpaqueToken refreshToken, Instant now) {
+        Role role = users.findRole(userId).orElse(Role.USER);
         return TokenResponse.bearer(
-                accessTokenIssuer.issue(userId, sessionId, now),
+                accessTokenIssuer.issue(userId, sessionId, role, now),
                 refreshToken.getValue(),
                 accessTokenIssuer.expiresInSeconds());
     }

@@ -55,14 +55,20 @@ Repo đang ở giai đoạn khung: đã có cấu hình, code dùng chung (`comm
 
 Ứng dụng chạy ở cổng `8080` (đổi bằng `SERVER_PORT`). Health check: `GET /actuator/health` trên cổng `8081` (đổi bằng `MANAGEMENT_PORT`), không phải cổng 8080.
 
-Ứng dụng không khởi động nếu thiếu `JWT_ISSUER`, `JWT_AUDIENCE` hoặc `JWT_PUBLIC_KEY`. Tạo cặp khoá cho môi trường dev (giữ khoá riêng ngoài repo):
+Ứng dụng không khởi động nếu thiếu `JWT_ISSUER`, `JWT_AUDIENCE`, khoá công khai hoặc khoá riêng. Mỗi khoá đặt theo một trong hai cách, không đặt cả hai:
+
+- File PEM (mặc định trong `.env.example`): `JWT_PUBLIC_KEY_LOCATION`, `JWT_PRIVATE_KEY_LOCATION`, giá trị có tiền tố `file:`.
+- Chuỗi khoá trong biến môi trường: `JWT_PUBLIC_KEY`, `JWT_PRIVATE_KEY` (PEM hoặc Base64 một dòng).
+
+Tạo cặp khoá cho môi trường dev vào thư mục `secrets/` (đã có trong `.gitignore`, không commit):
 
 ```bash
-openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out dev-private.pem
-openssl rsa -in dev-private.pem -pubout -outform DER | openssl base64 -A
+mkdir -p secrets
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out secrets/jwt-private.pem
+openssl rsa -in secrets/jwt-private.pem -pubout -out secrets/jwt-public.pem
 ```
 
-Dán dòng Base64 in ra vào `JWT_PUBLIC_KEY` trong `.env`.
+Trên Kubernetes, mount secret thành file rồi trỏ `JWT_*_KEY_LOCATION` tới đường dẫn mount, ví dụ `file:/etc/t3tarot/jwt/jwt-private.pem`.
 
 ### Biến môi trường
 
@@ -82,7 +88,17 @@ Dán dòng Base64 in ra vào `JWT_PUBLIC_KEY` trong `.env`.
 | `MANAGEMENT_PORT` | `8081` | Cổng Actuator (health, prometheus); chỉ cho truy cập nội bộ cluster, không public ra ingress |
 | `JWT_ISSUER` | | Giá trị claim `iss` mà access token phải có |
 | `JWT_AUDIENCE` | | Giá trị claim `aud` mà access token phải có |
-| `JWT_PUBLIC_KEY` | | Khoá công khai RSA (X.509, RS256, tối thiểu 2048 bit) để kiểm chữ ký access token; PEM hoặc Base64 một dòng |
+| `JWT_PUBLIC_KEY` | rỗng | Khoá công khai RSA (X.509, RS256, tối thiểu 2048 bit) để kiểm chữ ký access token; PEM hoặc Base64 một dòng. Bỏ trống khi dùng `JWT_PUBLIC_KEY_LOCATION` |
+| `JWT_PUBLIC_KEY_LOCATION` | rỗng | Đường dẫn file PEM của khoá công khai, ví dụ `file:./secrets/jwt-public.pem` |
+| `JWT_PRIVATE_KEY` | rỗng | Khoá riêng RSA (PKCS#8) để ký access token, phải cùng cặp với khoá công khai. Bỏ trống khi dùng `JWT_PRIVATE_KEY_LOCATION` |
+| `JWT_PRIVATE_KEY_LOCATION` | rỗng | Đường dẫn file PEM của khoá riêng, ví dụ `file:./secrets/jwt-private.pem` |
+| `MAIL_ENABLED` | `false` | `true` thì gửi mail xác minh thật qua SMTP; `false` thì chỉ ghi một dòng log và không gửi gì |
+| `MAIL_HOST`, `MAIL_PORT` | rỗng, `587` | Máy chủ SMTP và cổng (STARTTLS bắt buộc). Gmail: `smtp.gmail.com`, `587` |
+| `MAIL_USERNAME`, `MAIL_PASSWORD` | rỗng | Tài khoản SMTP. Gmail: địa chỉ Gmail và App Password 16 ký tự (không phải mật khẩu đăng nhập) |
+| `MAIL_FROM`, `MAIL_FROM_NAME` | rỗng, `T3Tarot` | Địa chỉ và tên người gửi; bắt buộc có `MAIL_FROM` khi `MAIL_ENABLED=true`. Gmail luôn gửi từ chính tài khoản đã đăng nhập |
+| `APP_PUBLIC_BASE_URL` | `http://localhost:8080` | Địa chỉ công khai của API, dùng dựng link trong mail (`<địa chỉ>/auth/email/verify-page?token=...`) |
+| `APP_WEB_BASE_URL` | `http://localhost:5173` | Địa chỉ website; nút trên trang kết quả xác nhận trỏ về đây |
+| `APP_WEB_LOGIN_PATH`, `APP_WEB_RESEND_PATH`, `APP_WEB_HOME_PATH` | `/login`, `/verify-email`, `/` | Đường dẫn trên website cho nút Đăng nhập, Gửi link mới, Vào T3Tarot |
 | `CORS_ALLOWED_ORIGINS` | rỗng | Danh sách origin của web, cách nhau dấu phẩy, ví dụ `https://t3tarot.vn`; rỗng là chặn mọi origin; không nhận `*` |
 
 Không commit file `.env`; chỉ `.env.example` được đưa lên git.

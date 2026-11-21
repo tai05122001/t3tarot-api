@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.regex.Pattern;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.core.io.Resource;
 import org.springframework.validation.annotation.Validated;
+import vn.t3tarot.api.common.security.jwt.PemKeySource;
 
 @Validated
 @ConfigurationProperties(prefix = "t3tarot.security")
@@ -46,7 +48,12 @@ public record SecurityProperties(
         }
     }
 
-    public record Jwt(@NotBlank String issuer, @NotBlank String audience, @NotBlank String publicKey) {
+    public record Jwt(
+            @NotBlank String issuer, @NotBlank String audience, String publicKey, Resource publicKeyLocation) {
+
+        public String publicKeyPem() {
+            return PemKeySource.read(publicKey, publicKeyLocation, "JWT public key");
+        }
 
         @Override
         public String toString() {

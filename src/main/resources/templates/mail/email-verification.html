@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Link xác nhận email T3Tarot</title>
+</head>
+<body style="margin:0;padding:0;background:#EEF0F5;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#EEF0F5;">
+<tr>
+<td align="center" style="padding:32px 16px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
+<tr>
+<td style="background:#FFFFFF;border-radius:12px;padding:40px;font-family:Arial,Helvetica,sans-serif;color:#141B2E;">
+<p style="margin:0 0 24px;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:bold;color:#141B2E;">T3Tarot</p>
+<h1 style="margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:32px;line-height:1.15;font-weight:bold;color:#141B2E;">Xác nhận email của bạn</h1>
+<p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#141B2E;">Bấm nút bên dưới để xác nhận email cho tài khoản T3Tarot của bạn. Link chỉ dùng được một lần và hết hạn sau <span th:text="${lifetime}">24 giờ</span>.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">
+<tr>
+<td style="border-radius:10px;background:#141B2E;">
+<a th:href="${verifyUrl}" href="#" style="display:inline-block;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;line-height:20px;color:#F3EEDF;text-decoration:none;border-radius:10px;">Xác nhận email</a>
+</td>
+</tr>
+</table>
+<p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#4F5873;">Nút không bấm được? Dán link này vào trình duyệt:<br><a th:href="${verifyUrl}" href="#" style="color:#2B4C9A;word-break:break-all;" th:text="${verifyUrl}">https://example.test/auth/email/verify-page?token=...</a></p>
+<hr style="border:0;border-top:1px solid #DDE1EA;margin:0 0 24px;">
+<p style="margin:0;font-size:14px;line-height:1.6;color:#4F5873;">Bạn không yêu cầu email này? Cứ bỏ qua, tài khoản của bạn không bị thay đổi gì.</p>
+</td>
+</tr>
+<tr>
+<td align="center" style="padding:20px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#4F5873;">T3Tarot</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>

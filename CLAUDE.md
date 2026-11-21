@@ -40,7 +40,7 @@ Trước khi tạo file mới, dùng skill `project-structure`; cây thư mục 
 - `vn.t3tarot.api.common`: module `OPEN` chứa code dùng chung (giờ Việt Nam, SecureRandom, lỗi API, request id, idempotency key, cấu hình Spring Security). Chia theo nhóm (`constant`, `error`, `security`, `time`, `web`...); hằng số dùng chung vào `common/constant`; nhóm có từ 3 class cùng một mối quan tâm thì tách package con một cấp (`security/jwt`, `security/ratelimit`). Quy tắc ở mục "Đặt file trong `common`" của `structure.md`.
 - `src/main/resources/db/migration`: migration Flyway.
 - `docker/<service>/`: Dockerfile và cấu hình của image dùng cho dev local (hiện có `postgres`).
-- `docs/`: tài liệu gốc của dự án (spec, ERD). `docs/changelog/`: changelog theo feature, do agent ghi và sửa đè sau mỗi task code (skill `changelog`).
+- `docs/`: tài liệu gốc của dự án (spec, ERD). `docs/api/endpoints.md`: danh sách và thống kê mọi endpoint, workflow tạo và sửa endpoint cập nhật mỗi lần. `bruno/`: collection Bruno happy case mỗi endpoint (Open Collection). `curl/`: curl cùng các request đó. `docs/changelog/`: changelog theo feature, do agent ghi và sửa đè sau mỗi task code (skill `changelog`).
 - `.claude/`: cấu hình AI (agents, commands, skills, workflows, rules, policies, references, output-styles, hooks); bản đồ ở `.claude/README.md`.
 
 ## Quy tắc bắt buộc
@@ -84,7 +84,7 @@ Quy tắc chi tiết nằm trong `references/` của từng skill. Khi làm vi�
 | `client-compatibility` | Endpoint dùng cho website và mobile app; tương thích app cũ | `.claude/skills/client-compatibility/references/client-platforms.md` |
 | `project-structure` | Tạo hoặc di chuyển file: thư mục, package, tên | `.claude/skills/project-structure/references/structure.md`, `.claude/skills/project-structure/references/naming.md` |
 | `changelog` | Sau mỗi task code: ghi hoặc sửa đè changelog theo feature | `.claude/skills/changelog/references/changelog.md` |
-| `/create-endpoint` (command) | Workflow tạo endpoint mới | `.claude/workflows/create-endpoint/WORKFLOW.md` |
-| `/modify-endpoint` (command) | Workflow sửa endpoint | `.claude/workflows/modify-endpoint/WORKFLOW.md`, `.claude/workflows/modify-endpoint/references/workflow.md` |
+| `/create-endpoint` (command) | Workflow tạo endpoint mới | `.claude/workflows/create-endpoint/WORKFLOW.md`, `.claude/references/swagger.md` |
+| `/modify-endpoint` (command) | Workflow sửa endpoint | `.claude/workflows/modify-endpoint/WORKFLOW.md`, `.claude/workflows/modify-endpoint/references/workflow.md`, `.claude/references/swagger.md` |
 
 Tài liệu dùng chung nhiều skill ở `.claude/references/`. Agent theo vai trò ở `.claude/agents/`. Danh sách đầy đủ và quy ước viết skill: `.claude/README.md`.

@@ -4,6 +4,9 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import com.jayway.jsonpath.JsonPath;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,7 +39,8 @@ import vn.t3tarot.api.identity.sociallogin.client.GoogleIdTokenVerifier;
             "t3tarot.identity.key-id=" + IdentityTestProperties.KEY_ID,
             "t3tarot.identity.password-hash-strength=4",
             "t3tarot.identity.google.client-ids=" + GoogleTokenFactory.CLIENT_ID,
-            "t3tarot.security.rate-limit.enabled=false"
+            "t3tarot.security.rate-limit.enabled=false",
+            "t3tarot.verification-mail.enabled=false"
         })
 @Import({TestcontainersConfiguration.class, IdentityIntegrationTest.TestBeans.class})
 public abstract class IdentityIntegrationTest {
@@ -50,6 +54,8 @@ public abstract class IdentityIntegrationTest {
     static void keys(DynamicPropertyRegistry registry) {
         registry.add("t3tarot.security.jwt.public-key", TestJwtFactory::trustedPublicKeyBase64);
         registry.add("t3tarot.identity.private-key", TestJwtFactory::trustedPrivateKeyBase64);
+        registry.add("t3tarot.security.jwt.public-key-location", () -> "");
+        registry.add("t3tarot.identity.private-key-location", () -> "");
     }
 
     @TestConfiguration(proxyBeanMethods = false)
@@ -160,6 +166,11 @@ public abstract class IdentityIntegrationTest {
 
     protected static String bearer(String accessToken) {
         return "Bearer " + accessToken;
+    }
+
+    protected static List<String> rolesOf(String accessToken) {
+        String payload = new String(Base64.getUrlDecoder().decode(accessToken.split("\\.")[1]), StandardCharsets.UTF_8);
+        return JsonPath.read(payload, "$.roles");
     }
 
     protected UUID userIdOf(Account account) {

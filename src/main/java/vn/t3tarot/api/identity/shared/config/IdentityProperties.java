@@ -9,12 +9,15 @@ import java.time.Duration;
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.core.io.Resource;
 import org.springframework.validation.annotation.Validated;
+import vn.t3tarot.api.common.security.jwt.PemKeySource;
 
 @Validated
 @ConfigurationProperties("t3tarot.identity")
 public record IdentityProperties(
-        @NotBlank String privateKey,
+        String privateKey,
+        Resource privateKeyLocation,
         @NotBlank String keyId,
         @NotNull @DefaultValue("15m") Duration accessTokenTtl,
         @NotNull @DefaultValue("30d") Duration refreshTokenTtl,
@@ -25,6 +28,10 @@ public record IdentityProperties(
         @NotNull @DefaultValue("15m") Duration lockoutDuration,
         @DefaultValue("12") @Min(4) @Max(31) int passwordHashStrength,
         @DefaultValue @Valid Google google) {
+
+    public String privateKeyPem() {
+        return PemKeySource.read(privateKey, privateKeyLocation, "JWT private key");
+    }
 
     @Override
     public String toString() {

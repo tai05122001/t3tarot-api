@@ -32,6 +32,13 @@ public class EmailVerificationHotPathRepository {
             RETURNING ui.id
             """;
 
+    private static final String FIND_STATE = """
+            SELECT ev.expires_at, ev.consumed_at, ui.verified_at
+            FROM email_verification ev
+            JOIN user_identity ui ON ui.id = ev.identity_id
+            WHERE ev.token_hash = :tokenHash
+            """;
+
     private final JdbcClient jdbcClient;
 
     public boolean insertIfNoRecent(
@@ -52,6 +59,19 @@ public class EmailVerificationHotPathRepository {
                         .param("recentCutoff", SqlTimestamps.of(recentCutoff))
                         .update()
                 > 0;
+    }
+
+    public Optional<TokenState> findState(byte[] tokenHash) {
+        return jdbcClient.sql(FIND_STATE)
+                .param("tokenHash", tokenHash)
+                .query((resultSet, rowNumber) -> new TokenState(
+                        SqlTimestamps.instantOrNull(resultSet, "expires_at"),
+                        SqlTimestamps.instantOrNull(resultSet, "consumed_at"),
+                        SqlTimestamps.instantOrNull(resultSet, "verified_at")))
+                .optional();
+    }
+
+    public record TokenState(Instant expiresAt, Instant consumedAt, Instant identityVerifiedAt) {
     }
 
     public Optional<UUID> consume(byte[] tokenHash, Instant now) {
